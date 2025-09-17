@@ -1,0 +1,161 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace HospitalityCustomerAPI.Models.HCAEntity;
+
+public partial class HungDuyHospitalityCustomerContext : DbContext
+{
+    public HungDuyHospitalityCustomerContext()
+    {
+    }
+
+    public HungDuyHospitalityCustomerContext(DbContextOptions<HungDuyHospitalityCustomerContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<NwsLoaiTinTuc> NwsLoaiTinTuc { get; set; }
+
+    public virtual DbSet<NwsTinTuc> NwsTinTuc { get; set; }
+
+    public virtual DbSet<NwsVideoAds> NwsVideoAds { get; set; }
+
+    public virtual DbSet<SysNotifications> SysNotifications { get; set; }
+
+    public virtual DbSet<SysSmsOtp> SysSmsOtp { get; set; }
+
+    public virtual DbSet<SysUser> SysUser { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:HCA");
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<NwsLoaiTinTuc>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("nws_LoaiTinTuc");
+
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<NwsTinTuc>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("nws_TinTuc");
+
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.HinhAnh).HasMaxLength(500);
+            entity.Property(e => e.Link).HasMaxLength(1000);
+            entity.Property(e => e.MoTaNgan).HasMaxLength(2000);
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.TenLoai).HasMaxLength(1000);
+            entity.Property(e => e.Title).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<NwsVideoAds>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("nws_VideoAds");
+
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.Link).HasMaxLength(200);
+            entity.Property(e => e.LinkWeb).HasMaxLength(200);
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(500);
+            entity.Property(e => e.Thumbnail).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<SysNotifications>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("sys_Notifications");
+
+            entity.Property(e => e.Ma).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.FcmToken).HasMaxLength(200);
+            entity.Property(e => e.Message).HasMaxLength(200);
+            entity.Property(e => e.MessageId).HasMaxLength(200);
+            entity.Property(e => e.NotificationType).HasMaxLength(200);
+            entity.Property(e => e.ReadAt).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.UserPhone)
+                .HasMaxLength(20)
+                .IsFixedLength();
+        });
+
+        modelBuilder.Entity<SysSmsOtp>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("sys_SmsOtp");
+
+            entity.Property(e => e.Ma).ValueGeneratedNever();
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.GiaTriGiaoDich).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Otp)
+                .HasMaxLength(20)
+                .IsFixedLength();
+            entity.Property(e => e.Sdt)
+                .HasMaxLength(20)
+                .IsFixedLength();
+            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<SysUser>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("sys_User");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Cccd)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CCCD");
+            entity.Property(e => e.CodeKhachHang)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.Fcm)
+                .HasMaxLength(200)
+                .HasColumnName("FCM");
+            entity.Property(e => e.FullName).HasMaxLength(300);
+            entity.Property(e => e.HinhAnh)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.HoChieu)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.NgaySinh).HasColumnType("datetime");
+            entity.Property(e => e.Password).HasMaxLength(300);
+            entity.Property(e => e.SoDienThoai)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.SoNha)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.Token)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.Username).HasMaxLength(100);
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
