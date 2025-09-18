@@ -159,7 +159,7 @@ namespace HospitalityCustomerAPI.Controllers
 
 
         [HttpPost("Checkin")]
-        [TokenUserCheckHTTP]
+        [APIKeyCheck]
         public async Task<ResponseModel> Checkin([FromForm] CheckinDto dto)
         {
             Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();

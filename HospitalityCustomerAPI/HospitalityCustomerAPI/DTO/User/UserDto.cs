@@ -12,6 +12,7 @@
 
         public class UserResponseDto
         {
+            public Guid? Ma { get; set; }
             public string Username { get; set; } = "";
             public string AppVersion { get; set; } = "";
             public string Token { get; set; } = "";
@@ -28,6 +29,7 @@
             public Guid? QuocTich { get; set; }
             public Guid? MaDanToc { get; set; }
             public string? HoChieu { get; set; }
+            public Guid? MaKhachHang { get; set; }
 
         }
 

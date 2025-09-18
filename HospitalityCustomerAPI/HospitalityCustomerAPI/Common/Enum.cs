@@ -35,5 +35,11 @@ namespace HospitalityCustomerAPI.Common
             Using = -5,
             TransactionError = -6,
         }
+
+        public enum TinTucEnum
+        {
+            TinTuc = 2007,
+            NoiBat = 1007,
+        }
     }
 }

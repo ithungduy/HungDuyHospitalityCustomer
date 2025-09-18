@@ -40,10 +40,11 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
     {
         modelBuilder.Entity<NwsLoaiTinTuc>(entity =>
         {
-            entity.HasKey(e => e.Ma);
+            entity.HasKey(e => e.Ma).HasName("PK_nws_LoaiTinTuc_1");
 
             entity.ToTable("nws_LoaiTinTuc");
 
+            entity.Property(e => e.Ma).ValueGeneratedNever();
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
@@ -52,10 +53,11 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
         modelBuilder.Entity<NwsTinTuc>(entity =>
         {
-            entity.HasKey(e => e.Ma);
+            entity.HasKey(e => e.Ma).HasName("PK_nws_TinTuc_1");
 
             entity.ToTable("nws_TinTuc");
 
+            entity.Property(e => e.Ma).ValueGeneratedNever();
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.HinhAnh).HasMaxLength(500);
@@ -68,10 +70,11 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
         modelBuilder.Entity<NwsVideoAds>(entity =>
         {
-            entity.HasKey(e => e.Ma);
+            entity.HasKey(e => e.Ma).HasName("PK_nws_VideoAds_1");
 
             entity.ToTable("nws_VideoAds");
 
+            entity.Property(e => e.Ma).ValueGeneratedNever();
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.Link).HasMaxLength(200);

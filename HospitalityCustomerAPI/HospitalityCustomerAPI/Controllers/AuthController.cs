@@ -73,6 +73,7 @@ namespace HospitalityCustomerAPI.Controllers
 
                 var dto = new UserResponseDto
                 {
+                    Ma = user.Ma,
                     Username = username,
                     AppVersion = appver,
                     Token = token,
@@ -87,7 +88,8 @@ namespace HospitalityCustomerAPI.Controllers
                     SoNha = user.SoNha,
                     QuocTich = user.QuocTich,
                     HoChieu = user.HoChieu,
-                    MaDanToc = user.MaDanToc
+                    MaDanToc = user.MaDanToc,
+                    MaKhachHang = user.MaKhachHang
                 };
 
                 return new ResponseModelSuccess("Thành công", dto);

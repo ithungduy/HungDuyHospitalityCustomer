@@ -5,9 +5,9 @@ namespace HospitalityCustomerAPI.Models.HCAEntity;
 
 public partial class NwsTinTuc
 {
-    public int Ma { get; set; }
+    public Guid Ma { get; set; }
 
-    public int? MaLoai { get; set; }
+    public Guid? MaLoai { get; set; }
 
     public string? TenLoai { get; set; }
 
