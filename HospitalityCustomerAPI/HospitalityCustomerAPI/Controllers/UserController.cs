@@ -3,8 +3,11 @@ using HospitalityCustomerAPI.Common;
 using HospitalityCustomerAPI.DTO.User;
 using HospitalityCustomerAPI.Models;
 using HospitalityCustomerAPI.Models.HCAEntity;
+using HospitalityCustomerAPI.Models.POSEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace HospitalityCustomerAPI.Controllers
 {
@@ -13,15 +16,20 @@ namespace HospitalityCustomerAPI.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly ISmsOtpRepository _smsOtpRepository;
+        private readonly HungDuyHospitalityContext _posdbcontext;
+        private readonly HungDuyHospitalityCustomerContext _context;
 
         public UserController(
                HungDuyHospitalityCustomerContext context,
+               HungDuyHospitalityContext posdbcontext,
                IUserRepository userRepository,
                ISmsOtpRepository smsOtpRepository
            ) : base(context)
         {
             _userRepository = userRepository;
             _smsOtpRepository = smsOtpRepository;
+            _posdbcontext = posdbcontext;
+            _context = context;
         }
 
 
@@ -147,6 +155,101 @@ namespace HospitalityCustomerAPI.Controllers
             if (result.isNotExit())
                 return new ResponseModelError("Không tìm thấy người dùng");
             return ResponseHaveError;
+        }
+
+
+        [HttpPost("Checkin")]
+        [TokenUserCheckHTTP]
+        public async Task<ResponseModel> Checkin([FromForm] CheckinDto dto)
+        {
+            Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();
+            TblDiemBanHang? diemBanHang = await _posdbcontext.TblDiemBanHang.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == maDiemBanHang && !(x.Deleted ?? false));
+            if (diemBanHang == null)
+            {
+                return new ResponseModelError("Điểm bán hàng không tồn tại");
+            }
+            var goiDichVu = await _context.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
+            if (goiDichVu == null)
+            {
+                return new ResponseModelError("Gói dịch vụ không tồn tại");
+            }
+
+            var khachHang = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == dto.MaKhachHang && !(x.Deleted ?? false));
+            if (khachHang == null)
+            {
+                return new ResponseModelError("Khách hàng không tồn tại");
+            }
+            HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn item = new()
+            {
+                MaChiNhanh = diemBanHang.MaChiNhanh,
+                MaPhongBan = diemBanHang.MaPhongBan,
+                MaDiemBanHang = diemBanHang.Ma,
+                MaLichSuGoiDichVu = goiDichVu != null ? goiDichVu.Ma : null,
+                MaKhachHang = khachHang != null ? khachHang.Ma : null,                
+                NgayCheckIn = DateTime.Now,          
+            };
+
+            HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn itemPos = new()
+            {
+                MaChiNhanh = diemBanHang.MaChiNhanh,
+                MaPhongBan = diemBanHang.MaPhongBan,
+                MaDiemBanHang = diemBanHang.Ma,
+                MaLichSuGoiDichVu = goiDichVu != null ? goiDichVu.Ma : null,
+                MaKhachHang = khachHang != null ? khachHang.Ma : null,
+                NgayCheckIn = DateTime.Now,
+            };
+
+            var txOptions = new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.ReadCommitted,
+                Timeout = TransactionManager.MaximumTimeout
+            };
+
+            using (var scope = new TransactionScope(TransactionScopeOption.Required, txOptions, TransactionScopeAsyncFlowOption.Enabled))
+            {
+                try
+                {
+                    _context.Add(item);
+                    await _context.SaveChangesAsync();
+
+                    _context.Add(itemPos);
+                    await _posdbcontext.SaveChangesAsync();
+
+                    scope.Complete();
+                    return new ResponseModelSuccess("Đã check in");
+                }
+                catch (Exception ex)
+                {
+                    return new ResponseModelError(ex.Message);
+                }
+            }             
+        }
+
+
+        [HttpPost("getListGoiDichVu")]
+        [TokenUserCheckHTTP]
+        public async Task<ResponseModel> getListGoiDichVu(string MaKhachHang)
+        {
+            Guid maKhachHang = MaKhachHang.GetGuid(); 
+            var khachHang = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == maKhachHang && !(x.Deleted ?? false));
+            if (khachHang == null)
+            {
+                return new ResponseModelError("Khách hàng không tồn tại");
+            }
+
+            var listData = await (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking().Where(x => x.MaKhachHang == maKhachHang && !(x.Deleted ?? false))
+                                  join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
+                                  select new
+                                  {
+                                      maGoiDichVu = t.Ma,
+                                      tenGoiDichVu = dv.Ten,
+                                      ngayKichHoat = t.CreatedDate,
+                                      soLan = t.SoLanDaSuDung ?? 0,
+                                      soLanDaSuDung = t.SoLanDaSuDung ?? 0,
+                                      conLai = t.SoLanConLai ?? 0,
+                                  }).ToListAsync();           
+
+            return new ResponseModelSuccess("",listData);
         }
     }
 }

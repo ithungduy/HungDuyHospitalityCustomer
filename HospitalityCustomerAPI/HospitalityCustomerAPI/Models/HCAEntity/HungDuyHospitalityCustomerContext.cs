@@ -21,11 +21,17 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
     public virtual DbSet<NwsVideoAds> NwsVideoAds { get; set; }
 
+    public virtual DbSet<OpsCheckIn> OpsCheckIn { get; set; }
+
+    public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
+
     public virtual DbSet<SysNotifications> SysNotifications { get; set; }
 
     public virtual DbSet<SysSmsOtp> SysSmsOtp { get; set; }
 
     public virtual DbSet<SysUser> SysUser { get; set; }
+
+    public virtual DbSet<TblHangHoa> TblHangHoa { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:HCA");
@@ -73,6 +79,33 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.Ten).HasMaxLength(500);
             entity.Property(e => e.Thumbnail).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<OpsCheckIn>(entity =>
+        {
+            entity.HasKey(e => e.Ma).HasName("PK_chk_CheckIn");
+
+            entity.ToTable("ops_CheckIn");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.NgayCheckIn).HasColumnType("datetime");
+            entity.Property(e => e.TienPhuCap).HasColumnType("decimal(18, 0)");
+        });
+
+        modelBuilder.Entity<OpsLichSuMuaGoiDichVu>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("ops_LichSuMuaGoiDichVu");
+
+            entity.Property(e => e.Ma).ValueGeneratedNever();
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.DonGia).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<SysNotifications>(entity =>
@@ -152,6 +185,20 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false);
             entity.Property(e => e.Username).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TblHangHoa>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("tbl_HangHoa");
+
+            entity.Property(e => e.Ma).ValueGeneratedNever();
+            entity.Property(e => e.MaDvt).HasColumnName("MaDVT");
+            entity.Property(e => e.MaVach)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Ten).HasMaxLength(200);
         });
 
         OnModelCreatingPartial(modelBuilder);

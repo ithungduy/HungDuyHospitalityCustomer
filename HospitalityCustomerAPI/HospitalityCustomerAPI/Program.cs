@@ -1,4 +1,5 @@
 ﻿using HospitalityCustomerAPI.Models.HCAEntity;
+using HospitalityCustomerAPI.Models.POSEntity;
 using HospitalityCustomerAPI.Repositories;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using HospitalityCustomerAPI.Services;
@@ -15,10 +16,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //scaffold-dbcontext 'Name=ConnectionStrings:HCA' microsoft.entityframeworkcore.sqlserver -outputdir Models/HCAEntity -f -NoPluralize
-//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn
+//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn, tbl_DiemBanHang
 
 builder.Services.AddDbContext<HungDuyHospitalityCustomerContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("HCA")));
+builder.Services.AddDbContext<HungDuyHospitalityContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("POS")));
 
 // ================== Add Repository ==================
 builder.Services.AddScoped<IUserRepository, UserRepository>();

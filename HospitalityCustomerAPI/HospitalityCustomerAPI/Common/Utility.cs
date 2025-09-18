@@ -64,6 +64,19 @@ namespace HospitalityCustomerAPI.Common
         {
             return o == null || Convert.IsDBNull(o);
         }
+
+       
+        public static Guid GetGuid(string str)
+        {
+            try
+            {
+                return Guid.Parse(str);
+            }
+            catch
+            {
+                return Utility.defaultUID;
+            }
+        }
         public static string ConvertPhoneNumber(string phoneNumber)
         {
             if (phoneNumber.Length >= 10 && phoneNumber.Substring(0, 2) == "84")
@@ -97,5 +110,8 @@ namespace HospitalityCustomerAPI.Common
                 return "";
             }
         }
+     
+
+
     }
 }

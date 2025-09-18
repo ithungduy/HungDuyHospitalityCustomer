@@ -52,4 +52,12 @@
         public string Password { get; set; } = "";
         public string Otp { get; set; } = "";
     }
+
+
+    public class CheckinDto
+    {
+        public string MaDiemBanHang { get; set; }
+        public Guid MaLichSuGoiDichVu { get; set; }
+        public Guid MaKhachHang { get; set; }
+    }
 }
