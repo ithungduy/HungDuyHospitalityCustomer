@@ -21,6 +21,8 @@ public partial class HungDuyHospitalityContext : DbContext
 
     public virtual DbSet<TblDiemBanHang> TblDiemBanHang { get; set; }
 
+    public virtual DbSet<TblKhachHang> TblKhachHang { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:POS");
 
@@ -68,6 +70,36 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.Ten).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<TblKhachHang>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("tbl_KhachHang");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Cccd)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("CCCD");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.DiaChi).HasMaxLength(200);
+            entity.Property(e => e.HanMucCongNo).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Msnv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("MSNV");
+            entity.Property(e => e.NgaySinh).HasColumnType("datetime");
+            entity.Property(e => e.SoDienThoai)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Ten).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -16,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //scaffold-dbcontext 'Name=ConnectionStrings:HCA' microsoft.entityframeworkcore.sqlserver -outputdir Models/HCAEntity -f -NoPluralize
-//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn, tbl_DiemBanHang
+//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn, tbl_DiemBanHang, tbl_KhachHang
 
 builder.Services.AddDbContext<HungDuyHospitalityCustomerContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("HCA")));
