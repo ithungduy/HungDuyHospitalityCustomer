@@ -219,10 +219,12 @@ namespace HospitalityCustomerAPI.Controllers
                     await _context.SaveChangesAsync();
 
                     goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
+                    goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) - 1;
                     _context.Update(goiDichVu);
                     await _context.SaveChangesAsync();
 
                     lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
+                    lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanConLai ?? 0) - 1;
                     _posdbcontext.Update(goiDichVu);
                     await _posdbcontext.SaveChangesAsync();
 
