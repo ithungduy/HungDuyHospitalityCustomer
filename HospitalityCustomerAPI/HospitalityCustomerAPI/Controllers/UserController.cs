@@ -241,7 +241,6 @@ namespace HospitalityCustomerAPI.Controllers
             }             
         }
 
-
         [HttpPost("getListGoiDichVu")]
         [TokenUserCheckHTTP]
         public async Task<ResponseModel> getListGoiDichVu(string MaKhachHang)
@@ -257,7 +256,7 @@ namespace HospitalityCustomerAPI.Controllers
                                   join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
                                   select new
                                   {
-                                      maGoiDichVu = t.Ma,
+                                      maLichSuGoiDichVu = t.Ma,
                                       tenGoiDichVu = dv.Ten,
                                       ngayKichHoat = t.CreatedDate,
                                       soLan = t.SoLanDaSuDung ?? 0,
@@ -266,6 +265,25 @@ namespace HospitalityCustomerAPI.Controllers
                                   }).ToListAsync();           
 
             return new ResponseModelSuccess("",listData);
+        }
+
+        [HttpPost("getListGoiDichVu")]
+        [TokenUserCheckHTTP]
+        public async Task<ResponseModel> getLichSuCheckin(string MaLichSuGoiDichVu)
+        {
+            Guid maLichSuGoiDichVu = MaLichSuGoiDichVu.GetGuid();            
+
+            var listData = await (from t in _context.OpsCheckIn.AsNoTracking().Where(x => x.MaLichSuGoiDichVu == maLichSuGoiDichVu && !(x.Deleted ?? false))
+                                 join g in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals g.Ma
+                                  join dv in _context.TblHangHoa.AsNoTracking() on g.MaHangHoa equals dv.Ma
+                                  select new
+                                  {
+                                      maGoiDichVu = t.Ma,
+                                      tenGoiDichVu = dv.Ten,
+                                      ngay = t.CreatedDate,                                    
+                                  }).ToListAsync();
+
+            return new ResponseModelSuccess("", listData);
         }
     }
 }
