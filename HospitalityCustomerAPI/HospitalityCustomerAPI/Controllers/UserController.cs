@@ -168,6 +168,12 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 return new ResponseModelError("Điểm bán hàng không tồn tại");
             }
+            var lichSuGoiDV  = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
+            if (lichSuGoiDV == null)
+            {
+                return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
+            }
+
             var goiDichVu = await _context.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
             if (goiDichVu == null)
             {
@@ -211,6 +217,14 @@ namespace HospitalityCustomerAPI.Controllers
                 {
                     _context.Add(item);
                     await _context.SaveChangesAsync();
+
+                    goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
+                    _context.Update(goiDichVu);
+                    await _context.SaveChangesAsync();
+
+                    lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
+                    _posdbcontext.Update(goiDichVu);
+                    await _posdbcontext.SaveChangesAsync();
 
                     _context.Add(itemPos);
                     await _posdbcontext.SaveChangesAsync();
