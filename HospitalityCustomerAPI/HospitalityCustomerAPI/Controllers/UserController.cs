@@ -8,6 +8,7 @@ using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Transactions;
+using static HospitalityCustomerAPI.DTO.User.UserDto;
 
 namespace HospitalityCustomerAPI.Controllers
 {
@@ -301,5 +302,44 @@ namespace HospitalityCustomerAPI.Controllers
 
             return new ResponseModelSuccess("", listData);
         }
+
+
+        [HttpGet("GetUserByPhone")]
+        //[APIKeyCheck]
+        public async Task<ResponseModel> GetUserByPhone([FromQuery] string phoneNumber)
+        {
+            AttachCountryCodeForPhoneNumber(phoneNumber, out var username);
+
+            var sysUser = await _context.SysUser
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Username == username && !(x.Deleted ?? false));
+
+            var khachHang = await _posdbcontext.TblKhachHang
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.SoDienThoai == username && !(x.Deleted ?? false));
+
+            if (sysUser == null && khachHang == null)
+            {
+                return new ResponseModelError("Không tìm thấy thông tin user");
+            }
+
+            var dto = new UserInfoDto
+            {
+                MaUser = sysUser?.Ma ?? Guid.Empty,
+                Username = sysUser?.Username,
+                FullName = sysUser?.FullName,
+                HinhAnh = sysUser?.HinhAnh,
+                NgaySinh = sysUser?.NgaySinh.Value.ToString("dd/MM/yyyy"),
+                GioiTinh = sysUser?.GioiTinh,
+
+                MaKhachHang = khachHang?.Ma ?? Guid.Empty,
+                Ten = khachHang?.Ten,
+                SoDienThoai = khachHang?.SoDienThoai,
+                DiaChi = khachHang?.DiaChi
+            };
+
+            return new ResponseModelSuccess("Thành công", dto);
+        }
+
     }
 }

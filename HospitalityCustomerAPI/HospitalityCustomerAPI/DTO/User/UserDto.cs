@@ -17,6 +17,15 @@
             public string AppVersion { get; set; } = "";
             public string Token { get; set; } = "";
             public string DeviceId { get; set; } = "";
+        }
+
+        public class UserInfoDto
+        {
+            public Guid MaUser { get; set; }
+            public string Username { get; set; } = "";
+            public string AppVersion { get; set; } = "";
+            public string Token { get; set; } = "";
+            public string DeviceId { get; set; } = "";
             public string? HinhAnh { get; set; }
             public string? FullName { get; set; }
             public string? NgaySinh { get; set; }
@@ -29,9 +38,11 @@
             public Guid? QuocTich { get; set; }
             public Guid? MaDanToc { get; set; }
             public string? HoChieu { get; set; }
-            public Guid? MaKhachHang { get; set; }
 
+            public Guid MaKhachHang { get; set; }
+            public string? Ten { get; set; }
+            public string? SoDienThoai { get; set; }
+            public string? DiaChi { get; set; }
         }
-
     }
 }

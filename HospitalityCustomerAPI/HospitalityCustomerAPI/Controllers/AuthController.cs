@@ -5,6 +5,7 @@ using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using HospitalityCustomerAPI.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using static HospitalityCustomerAPI.DTO.User.DeviceDto;
 using static HospitalityCustomerAPI.DTO.User.OtpDto;
@@ -76,18 +77,6 @@ namespace HospitalityCustomerAPI.Controllers
                     AppVersion = appver,
                     Token = token,
                     DeviceId = storedDeviceID,
-                    HinhAnh = user.HinhAnh,
-                    FullName = user.FullName,
-                    NgaySinh = user.NgaySinh.Value.ToString("dd/MM/yyyy"),
-                    GioiTinh = user.GioiTinh,
-                    MaQuocGia = user.MaQuocGia,
-                    MaTinh = user.MaTinh,
-                    MaPhuongXa = user.MaPhuongXa,
-                    SoNha = user.SoNha,
-                    QuocTich = user.QuocTich,
-                    HoChieu = user.HoChieu,
-                    MaDanToc = user.MaDanToc,
-                    MaKhachHang = user.MaKhachHang
                 };
 
                 return new ResponseModelSuccess("Thành công", dto);
@@ -230,5 +219,6 @@ namespace HospitalityCustomerAPI.Controllers
 
             return new ResponseModelSuccess("Cập nhật FCM thành công");
         }
+
     }
 }
