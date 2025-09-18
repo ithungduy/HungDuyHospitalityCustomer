@@ -79,7 +79,7 @@ namespace HospitalityCustomerAPI.Controllers
                 TblKhachHang kh = new TblKhachHang
                 {
                     SoDienThoai = username,
-                    Ten = dto.HoTen,
+                    Ten = dto.HoTen.ToUpper(),
                     Code = username,
                     GioiTinh = dto.GioiTinh,
                     DiaChi = dto.SoNha + "",
