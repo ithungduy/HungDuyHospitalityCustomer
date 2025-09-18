@@ -2,7 +2,6 @@
 using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
-using static HospitalityCustomerAPI.Common.Enum;
 
 namespace HospitalityCustomerAPI.Repositories
 {

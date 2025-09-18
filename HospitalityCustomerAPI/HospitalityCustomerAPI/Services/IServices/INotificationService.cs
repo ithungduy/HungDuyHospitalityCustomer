@@ -1,5 +1,5 @@
-﻿using HospitalityCustomerAPI.Models.HCAEntity;
-using static HospitalityCustomerAPI.Common.Enum;
+﻿using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.Models.HCAEntity;
 
 namespace HospitalityCustomerAPI.Services.IServices
 {

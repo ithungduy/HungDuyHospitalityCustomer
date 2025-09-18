@@ -5,7 +5,6 @@ using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static HospitalityCustomerAPI.Common.Enum;
 
 namespace HospitalityCustomerAPI.Controllers
 {
@@ -25,15 +24,15 @@ namespace HospitalityCustomerAPI.Controllers
 
         [HttpPost("GetTinTucTongQuat")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucTongQuat() => _newsRepository.GetTinTucTheoLoai((int)TinTucEnum.TinTuc);
+        public ResponseModel GetTinTucTongQuat() => _newsRepository.GetTinTucTheoLoai(TinTucEnum.TinTuc.GetEnumGuid());
 
         [HttpPost("GetTinTucNoiBat")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucNoiBat() => _newsRepository.GetTinTucTheoLoai((int)TinTucEnum.NoiBat);
+        public ResponseModel GetTinTucNoiBat() => _newsRepository.GetTinTucTheoLoai(TinTucEnum.NoiBat.GetEnumGuid());
 
         [HttpPost("GetTinTucTheoLoai")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucTheoLoai([FromForm] int maLoai) => _newsRepository.GetTinTucTheoLoai(maLoai);
+        public ResponseModel GetTinTucTheoLoai([FromForm] Guid maLoai) => _newsRepository.GetTinTucTheoLoai(maLoai);
 
         [HttpPost("GetVideoAds")]
         [APIKeyCheck]
@@ -45,7 +44,7 @@ namespace HospitalityCustomerAPI.Controllers
 
         [HttpGet("/news")]
         [APIKeyCheck]
-        public Task<ResponseModel<PagedResult<NewsItemDto>>> GetNews([FromQuery] int? maLoai, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
+        public Task<ResponseModel<PagedResult<NewsItemDto>>> GetNews([FromQuery] Guid? maLoai, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
             => _newsRepository.GetNewsAsync(maLoai, page, pageSize, ct);
 
         [HttpGet("/news/highlighted")]

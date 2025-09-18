@@ -1,11 +1,11 @@
-﻿using HospitalityCustomerAPI.DTO.FCM;
+﻿using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.DTO.FCM;
 using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
-using static HospitalityCustomerAPI.Common.Enum;
 
 namespace HospitalityCustomerAPI.Services
 {

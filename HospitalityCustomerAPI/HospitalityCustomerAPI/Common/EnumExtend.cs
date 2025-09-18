@@ -1,7 +1,43 @@
-﻿using static HospitalityCustomerAPI.Common.Enum;
+﻿using HospitalityCustomerAPI.Common.Attributes;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace HospitalityCustomerAPI.Common
 {
+    public static class EnumExtend
+    {
+        public static Guid GetEnumGuid(this Enum e)
+        {
+            MemberInfo[] memInfo = e.GetType().GetMember(e.ToString());
+            if (memInfo != null && memInfo.Length > 0)
+            {
+                object[] attrs = memInfo[0].GetCustomAttributes(typeof(EnumGuidAttribute), false);
+                if (attrs != null && attrs.Length > 0)
+                    return ((EnumGuidAttribute)attrs[0]).Guid;
+            }
+            throw new ArgumentException("Enum " + e.ToString() + " chưa được khởi tạo!");
+        }
+
+        public static TEnum ToEnum<TEnum>(this string value, bool ignoreCase = true, TEnum defaultValue = default) where TEnum : struct, Enum
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return defaultValue;
+
+            if (Enum.TryParse<TEnum>(value, ignoreCase, out var result))
+                return result;
+
+            return defaultValue;
+        }
+
+        public static string GetDisplayName(this Enum value)
+        {
+            return value.GetType()
+                        .GetMember(value.ToString())[0]
+                        .GetCustomAttribute<DisplayAttribute>()?
+                        .GetName() ?? value.ToString();
+        }
+    }
+
     public enum Status
     {
         Active = 1,
@@ -109,4 +145,6 @@ namespace HospitalityCustomerAPI.Common
         #endregion
      
     }
+
+
 }
