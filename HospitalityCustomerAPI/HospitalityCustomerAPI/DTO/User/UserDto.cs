@@ -16,6 +16,19 @@
             public string AppVersion { get; set; } = "";
             public string Token { get; set; } = "";
             public string DeviceId { get; set; } = "";
+            public string? HinhAnh { get; set; }
+            public string? FullName { get; set; }
+            public string? NgaySinh { get; set; }
+            public int? GioiTinh { get; set; }
+            public Guid? MaQuocGia { get; set; }
+            public Guid? MaTinh { get; set; }
+            public Guid? MaHuyen { get; set; }
+            public Guid? MaPhuongXa { get; set; }
+            public string? SoNha { get; set; }
+            public Guid? QuocTich { get; set; }
+            public Guid? MaDanToc { get; set; }
+            public string? HoChieu { get; set; }
+
         }
 
     }

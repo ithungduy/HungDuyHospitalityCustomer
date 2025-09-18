@@ -76,7 +76,18 @@ namespace HospitalityCustomerAPI.Controllers
                     Username = username,
                     AppVersion = appver,
                     Token = token,
-                    DeviceId = storedDeviceID
+                    DeviceId = storedDeviceID,
+                    HinhAnh = user.HinhAnh,
+                    FullName = user.FullName,
+                    NgaySinh = user.NgaySinh.Value.ToString("dd/MM/yyyy"),
+                    GioiTinh = user.GioiTinh,
+                    MaQuocGia = user.MaQuocGia,
+                    MaTinh = user.MaTinh,
+                    MaPhuongXa = user.MaPhuongXa,
+                    SoNha = user.SoNha,
+                    QuocTich = user.QuocTich,
+                    HoChieu = user.HoChieu,
+                    MaDanToc = user.MaDanToc
                 };
 
                 return new ResponseModelSuccess("Thành công", dto);
