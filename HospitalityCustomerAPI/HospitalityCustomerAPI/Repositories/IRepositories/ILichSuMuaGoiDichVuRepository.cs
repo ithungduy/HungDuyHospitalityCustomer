@@ -6,6 +6,7 @@ namespace HospitalityCustomerAPI.Repositories.IRepositories
     public interface ILichSuMuaGoiDichVuRepository
     {
         List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang);
+        List<LichSuGoiDichVuDTO> GetListGoiDichVuConSuDung(Guid MaKhachHang);
         OpsLichSuMuaGoiDichVu GetById(Guid Ma);
     }
 }

@@ -261,12 +261,12 @@ namespace HospitalityCustomerAPI.Controllers
                     await _context.SaveChangesAsync();
 
                     goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
-                    goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) - 1;
+                    goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
                     _context.Update(goiDichVu);
                     await _context.SaveChangesAsync();
 
                     lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
-                    lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanConLai ?? 0) - 1;
+                    lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanConLai ?? 0);
                     _posdbcontext.Update(goiDichVu);
                     await _posdbcontext.SaveChangesAsync();
 
@@ -281,6 +281,23 @@ namespace HospitalityCustomerAPI.Controllers
                     return new ResponseModelError(ex.Message);
                 }
             }
+        }
+        [HttpPost("GetListGoiDichVuConSuDung")]
+        [TokenUserCheckHTTP]
+        public ResponseModel GetListGoiDichVuConSuDung(string MaKhachHang)
+        {
+            Guid maKhachHang = MaKhachHang.GetGuid();
+
+            var khachHang = _userRepository.GetItemByKhachHang(maKhachHang);
+
+            if (khachHang == null)
+            {
+                return new ResponseModelError("Khách hàng không tồn tại");
+            }
+
+            var listData = _lichSuMuaGoiDichVuRepository.GetListGoiDichVuConSuDung(maKhachHang);
+
+            return new ResponseModelSuccess("", listData);
         }
 
         [HttpPost("GetListGoiDichVu")]
