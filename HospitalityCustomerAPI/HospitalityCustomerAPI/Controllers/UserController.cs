@@ -59,6 +59,7 @@ namespace HospitalityCustomerAPI.Controllers
 
             var entity = new SysUser
             {
+                Ma = Guid.NewGuid(),
                 Username = username,
                 Password = dto.Password,
                 HinhAnh = dto.HinhAnh,
@@ -79,6 +80,7 @@ namespace HospitalityCustomerAPI.Controllers
             {                
                 TblKhachHang kh = new TblKhachHang
                 {
+                    Ma = Guid.NewGuid(),
                     SoDienThoai = username,
                     Ten = dto.HoTen.ToUpper(),
                     Code = username,
@@ -89,7 +91,7 @@ namespace HospitalityCustomerAPI.Controllers
                 _posdbcontext.Add(kh);
                 _posdbcontext.SaveChanges();
             }
-
+            entity.MaKhachHang = khachHang.Ma;
             var result = _userRepository.Add(entity);
             return result.isSuccess() ? ResponseRegisterSuccessfully : ResponseAddFailure;
         }
@@ -304,19 +306,17 @@ namespace HospitalityCustomerAPI.Controllers
         }
 
 
-        [HttpGet("GetUserByPhone")]
-        //[APIKeyCheck]
-        public async Task<ResponseModel> GetUserByPhone([FromQuery] string phoneNumber)
+        [HttpGet("GetUserInfo")]
+        [TokenUserCheckHTTP]
+        public async Task<ResponseModel> GetUserInfo()
         {
-            AttachCountryCodeForPhoneNumber(phoneNumber, out var username);
-
             var sysUser = await _context.SysUser
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Username == username && !(x.Deleted ?? false));
+                .FirstOrDefaultAsync(x => x.Ma == objToken.userid && !(x.Deleted ?? false));
 
             var khachHang = await _posdbcontext.TblKhachHang
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.SoDienThoai == username && !(x.Deleted ?? false));
+                .FirstOrDefaultAsync(x => x.SoDienThoai == sysUser.SoDienThoai && !(x.Deleted ?? false));
 
             if (sysUser == null && khachHang == null)
             {

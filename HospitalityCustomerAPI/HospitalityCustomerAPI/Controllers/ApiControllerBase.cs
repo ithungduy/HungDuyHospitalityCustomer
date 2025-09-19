@@ -1,7 +1,10 @@
-﻿using HospitalityCustomerAPI.Models;
+﻿using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.Models;
 using HospitalityCustomerAPI.Models.HCAEntity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 namespace HospitalityCustomerAPI.Controllers
 {
@@ -26,7 +29,7 @@ namespace HospitalityCustomerAPI.Controllers
         {
             _hungDuyHospitalityCustomerContext = hungDuyHospitalityCustomerContext;
         }
-
+        
         protected void AttachCountryCodeForPhoneNumber(in string phoneNumber, out string phoneNumberAttach)
         {
             if (!string.IsNullOrEmpty(phoneNumber) && phoneNumber.StartsWith("0"))
