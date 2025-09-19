@@ -94,24 +94,25 @@ namespace HospitalityCustomerAPI.Controllers
                 MaDanToc = dto.MaDanToc
             };
 
-            var khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => x.SoDienThoai == username && !(x.Deleted ?? false));
+            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => x.SoDienThoai == username && !(x.Deleted ?? false));
             if (khachHang == null)
             {
-                TblKhachHang kh = new TblKhachHang
+                khachHang = new TblKhachHang
                 {
                     Ma = Guid.NewGuid(),
                     SoDienThoai = username,
-                    Ten = dto.HoTen.ToUpper(),
+                    Ten = (dto.HoTen + "").ToUpper(),
                     Code = username,
                     GioiTinh = dto.GioiTinh,
                     DiaChi = dto.SoNha + "",
                     NgaySinh = dtpNgaySinh,
                     Status = true,
                 };
-                _posdbcontext.Add(kh);
+                _posdbcontext.Add(khachHang);
                 _posdbcontext.SaveChanges();
+
             }
-            entity.MaKhachHang = khachHang.Ma;
+            entity.MaKhachHang = khachHang != null ? khachHang.Ma : null;
             var result = _userRepository.Add(entity);
             return result.isSuccess() ? ResponseRegisterSuccessfully : ResponseAddFailure;
         }
