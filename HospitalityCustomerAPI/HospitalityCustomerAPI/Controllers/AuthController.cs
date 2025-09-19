@@ -76,7 +76,7 @@ namespace HospitalityCustomerAPI.Controllers
                     Username = username,
                     AppVersion = appver,
                     Token = token,
-                    DeviceId = storedDeviceID,
+                    DeviceId = !string.IsNullOrEmpty(loginDto.DeviceID) ? loginDto.DeviceID : storedDeviceID,
                 };
 
                 return new ResponseModelSuccess("Thành công", dto);
