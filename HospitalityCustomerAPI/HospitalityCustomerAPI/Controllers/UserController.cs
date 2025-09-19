@@ -106,6 +106,7 @@ namespace HospitalityCustomerAPI.Controllers
                     GioiTinh = dto.GioiTinh,
                     DiaChi = dto.SoNha + "",
                     NgaySinh = dtpNgaySinh,
+                    Status = true,
                 };
                 _posdbcontext.Add(kh);
                 _posdbcontext.SaveChanges();
