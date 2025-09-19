@@ -6,6 +6,7 @@ using HospitalityCustomerAPI.DTO.User;
 using HospitalityCustomerAPI.Models;
 using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Models.POSEntity;
+using HospitalityCustomerAPI.Repositories;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,13 +18,16 @@ namespace HospitalityCustomerAPI.Controllers
     [Route("[controller]")]
     public class UserController : ApiControllerBase
     {
+        private readonly HungDuyHospitalityContext _posdbcontext;
+        private readonly HungDuyHospitalityCustomerContext _context;
         private readonly IUserRepository _userRepository;
         private readonly IKhachHangRepository _khachHangRepository;
         private readonly ISmsOtpRepository _smsOtpRepository;
         private readonly ICheckInRepository _checkInRepository;
         private readonly ILichSuMuaGoiDichVuRepository _lichSuMuaGoiDichVuRepository;
-        private readonly HungDuyHospitalityContext _posdbcontext;
-        private readonly HungDuyHospitalityCustomerContext _context;
+        private readonly IDiemBanHangPOSRepository _diemBanHangPOSRepository;
+        private readonly ILichSuMuaGoiDichVuPOSRepository _lichSuMuaGoiDichVuPOSRepository;
+
 
         public UserController(
                HungDuyHospitalityCustomerContext context,
@@ -32,7 +36,9 @@ namespace HospitalityCustomerAPI.Controllers
                ISmsOtpRepository smsOtpRepository,
                IKhachHangRepository khachHangRepository,
                ICheckInRepository checkInRepository,
-               ILichSuMuaGoiDichVuRepository lichSuMuaGoiDichVuRepository
+               ILichSuMuaGoiDichVuRepository lichSuMuaGoiDichVuRepository,
+               IDiemBanHangPOSRepository diemBanHangPOSRepository,
+               ILichSuMuaGoiDichVuPOSRepository lichSuMuaGoiDichVuPOSRepository
            ) : base(context)
         {
             _userRepository = userRepository;
@@ -42,6 +48,8 @@ namespace HospitalityCustomerAPI.Controllers
             _khachHangRepository = khachHangRepository;
             _checkInRepository = checkInRepository;
             _lichSuMuaGoiDichVuRepository = lichSuMuaGoiDichVuRepository;
+            _diemBanHangPOSRepository = diemBanHangPOSRepository;
+            _lichSuMuaGoiDichVuPOSRepository = lichSuMuaGoiDichVuPOSRepository;
         }
 
 
@@ -193,18 +201,20 @@ namespace HospitalityCustomerAPI.Controllers
         public async Task<ResponseModel> Checkin([FromForm] CheckinDto dto)
         {
             Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();
-            TblDiemBanHang? diemBanHang = await _posdbcontext.TblDiemBanHang.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == maDiemBanHang && !(x.Deleted ?? false));
+
+            TblDiemBanHang? diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
             if (diemBanHang == null)
             {
                 return new ResponseModelError("Điểm bán hàng không tồn tại");
             }
-            var lichSuGoiDV = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
+
+            var lichSuGoiDV = _lichSuMuaGoiDichVuPOSRepository.GetById(dto.MaLichSuGoiDichVu);
             if (lichSuGoiDV == null)
             {
                 return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
             }
 
-            var goiDichVu = await _context.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
+            var goiDichVu = _lichSuMuaGoiDichVuRepository.GetById(dto.MaLichSuGoiDichVu);
             if (goiDichVu == null)
             {
                 return new ResponseModelError("Gói dịch vụ không tồn tại");

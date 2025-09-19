@@ -13,6 +13,11 @@ namespace HospitalityCustomerAPI.Repositories
             _context = context;
         }
 
+        public OpsLichSuMuaGoiDichVu GetById(Guid Ma)
+        {
+            return _context.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefault(x => x.Ma == Ma && !(x.Deleted ?? false));
+        }
+
         public List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang)
         {
             return (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()

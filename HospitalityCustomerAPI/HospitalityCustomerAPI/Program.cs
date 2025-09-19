@@ -30,6 +30,8 @@ builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IKhachHangRepository, KhachHangRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<ILichSuMuaGoiDichVuRepository, LichSuMuaGoiDichVuRepository>();
+builder.Services.AddScoped<ILichSuMuaGoiDichVuPOSRepository, LichSuMuaGoiDichVuPOSRepository>();
+builder.Services.AddScoped<IDiemBanHangPOSRepository, DiemBanHangPOSRepository>();
 
 // ================== Add Services ==================
 builder.Services.AddScoped<INotificationService, NotificationService>();
