@@ -85,6 +85,11 @@ namespace HospitalityCustomerAPI.Repositories
             return _context.Set<SysUser>().FirstOrDefault(t => t.Ma == id && !(t.Deleted ?? false));
         }
 
+        public SysUser? GetItemByKhachHang(Guid MaKhachHang)
+        {
+            return _context.Set<SysUser>().FirstOrDefault(t => t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false));
+        }
+
         public SysUser? GetItemByPhone(string phone)
         {
             return _context.Set<SysUser>().FirstOrDefault(t => t.Username == phone && !(t.Deleted ?? false));

@@ -5,6 +5,7 @@ namespace HospitalityCustomerAPI.Repositories.IRepositories
     public interface IUserRepository
     {
         SysUser? GetItem(Guid id);
+        SysUser? GetItemByKhachHang(Guid MaKhachHang);
         IEnumerable<SysUser> GetData();
         SysUser? GetItemByPhone(string phone);
         (int, SysUser?) Authenticate(string username, string password);

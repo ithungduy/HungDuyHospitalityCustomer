@@ -1,5 +1,7 @@
 ﻿using HISCustomerAPI.Common;
 using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.DTO.CheckIn;
+using HospitalityCustomerAPI.DTO.LichSuMuaGoiDichVu;
 using HospitalityCustomerAPI.DTO.User;
 using HospitalityCustomerAPI.Models;
 using HospitalityCustomerAPI.Models.HCAEntity;
@@ -16,7 +18,10 @@ namespace HospitalityCustomerAPI.Controllers
     public class UserController : ApiControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IKhachHangRepository _khachHangRepository;
         private readonly ISmsOtpRepository _smsOtpRepository;
+        private readonly ICheckInRepository _checkInRepository;
+        private readonly ILichSuMuaGoiDichVuRepository _lichSuMuaGoiDichVuRepository;
         private readonly HungDuyHospitalityContext _posdbcontext;
         private readonly HungDuyHospitalityCustomerContext _context;
 
@@ -24,13 +29,19 @@ namespace HospitalityCustomerAPI.Controllers
                HungDuyHospitalityCustomerContext context,
                HungDuyHospitalityContext posdbcontext,
                IUserRepository userRepository,
-               ISmsOtpRepository smsOtpRepository
+               ISmsOtpRepository smsOtpRepository,
+               IKhachHangRepository khachHangRepository,
+               ICheckInRepository checkInRepository,
+               ILichSuMuaGoiDichVuRepository lichSuMuaGoiDichVuRepository
            ) : base(context)
         {
             _userRepository = userRepository;
             _smsOtpRepository = smsOtpRepository;
             _posdbcontext = posdbcontext;
             _context = context;
+            _khachHangRepository = khachHangRepository;
+            _checkInRepository = checkInRepository;
+            _lichSuMuaGoiDichVuRepository = lichSuMuaGoiDichVuRepository;
         }
 
 
@@ -77,7 +88,7 @@ namespace HospitalityCustomerAPI.Controllers
 
             var khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => x.SoDienThoai == username && !(x.Deleted ?? false));
             if (khachHang == null)
-            {                
+            {
                 TblKhachHang kh = new TblKhachHang
                 {
                     Ma = Guid.NewGuid(),
@@ -187,7 +198,7 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 return new ResponseModelError("Điểm bán hàng không tồn tại");
             }
-            var lichSuGoiDV  = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
+            var lichSuGoiDV = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == dto.MaLichSuGoiDichVu && !(x.Deleted ?? false));
             if (lichSuGoiDV == null)
             {
                 return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
@@ -199,7 +210,8 @@ namespace HospitalityCustomerAPI.Controllers
                 return new ResponseModelError("Gói dịch vụ không tồn tại");
             }
 
-            var khachHang = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == dto.MaKhachHang && !(x.Deleted ?? false));
+            var khachHang = _userRepository.GetItemByKhachHang(dto.MaKhachHang);
+
             if (khachHang == null)
             {
                 return new ResponseModelError("Khách hàng không tồn tại");
@@ -210,8 +222,8 @@ namespace HospitalityCustomerAPI.Controllers
                 MaPhongBan = diemBanHang.MaPhongBan,
                 MaDiemBanHang = diemBanHang.Ma,
                 MaLichSuGoiDichVu = goiDichVu != null ? goiDichVu.Ma : null,
-                MaKhachHang = khachHang != null ? khachHang.Ma : null,                
-                NgayCheckIn = DateTime.Now,          
+                MaKhachHang = khachHang != null ? khachHang.Ma : null,
+                NgayCheckIn = DateTime.Now,
             };
 
             HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn itemPos = new()
@@ -257,52 +269,36 @@ namespace HospitalityCustomerAPI.Controllers
                 {
                     return new ResponseModelError(ex.Message);
                 }
-            }             
+            }
         }
 
-        [HttpPost("getListGoiDichVu")]
+        [HttpPost("GetListGoiDichVu")]
         [TokenUserCheckHTTP]
-        public async Task<ResponseModel> getListGoiDichVu(string MaKhachHang)
+        public ResponseModel GetListGoiDichVu(string MaKhachHang)
         {
-            Guid maKhachHang = MaKhachHang.GetGuid(); 
-            var khachHang = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == maKhachHang && !(x.Deleted ?? false));
+            Guid maKhachHang = MaKhachHang.GetGuid();
+
+            var khachHang = _userRepository.GetItemByKhachHang(maKhachHang);
+
             if (khachHang == null)
             {
                 return new ResponseModelError("Khách hàng không tồn tại");
             }
 
-            var listData = await (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking().Where(x => x.MaKhachHang == maKhachHang && !(x.Deleted ?? false))
-                                  join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
-                                  select new
-                                  {
-                                      maLichSuGoiDichVu = t.Ma,
-                                      tenGoiDichVu = dv.Ten,
-                                      ngayKichHoat = t.CreatedDate,
-                                      soLan = t.SoLanDaSuDung ?? 0,
-                                      soLanDaSuDung = t.SoLanDaSuDung ?? 0,
-                                      conLai = t.SoLanConLai ?? 0,
-                                  }).ToListAsync();           
-
-            return new ResponseModelSuccess("",listData);
-        }
-
-        [HttpPost("getListGoiDichVu")]
-        [TokenUserCheckHTTP]
-        public async Task<ResponseModel> getLichSuCheckin(string MaLichSuGoiDichVu)
-        {
-            Guid maLichSuGoiDichVu = MaLichSuGoiDichVu.GetGuid();            
-
-            var listData = await (from t in _context.OpsCheckIn.AsNoTracking().Where(x => x.MaLichSuGoiDichVu == maLichSuGoiDichVu && !(x.Deleted ?? false))
-                                 join g in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals g.Ma
-                                  join dv in _context.TblHangHoa.AsNoTracking() on g.MaHangHoa equals dv.Ma
-                                  select new
-                                  {
-                                      maGoiDichVu = t.Ma,
-                                      tenGoiDichVu = dv.Ten,
-                                      ngay = t.CreatedDate,                                    
-                                  }).ToListAsync();
+            var listData = _lichSuMuaGoiDichVuRepository.GetListGoiDichVu(maKhachHang);
 
             return new ResponseModelSuccess("", listData);
+        }
+
+        [HttpPost("GetListGoiDichVu")]
+        [TokenUserCheckHTTP]
+        public ResponseModel GetLichSuCheckin(string MaLichSuGoiDichVu)
+        {
+            Guid maLichSuGoiDichVu = MaLichSuGoiDichVu.GetGuid();
+
+            var listData = _checkInRepository.GetLichSuCheckin(maLichSuGoiDichVu);
+
+            return new ResponseModelSuccess("Lấy thành công lịch sự checkin", listData);
         }
 
 
@@ -310,13 +306,11 @@ namespace HospitalityCustomerAPI.Controllers
         [TokenUserCheckHTTP]
         public async Task<ResponseModel> GetUserInfo()
         {
-            var sysUser = await _context.SysUser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Ma == objToken.userid && !(x.Deleted ?? false));
+            var sysUser = _userRepository.GetItem(objToken.userid);
 
-            var khachHang = await _posdbcontext.TblKhachHang
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.SoDienThoai == sysUser.SoDienThoai && !(x.Deleted ?? false));
+            var phoneNumber = sysUser.Username;
+
+            var khachHang = _khachHangRepository.GetKhachHangByPhone(phoneNumber);
 
             if (sysUser == null && khachHang == null)
             {

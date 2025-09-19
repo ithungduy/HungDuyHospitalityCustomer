@@ -27,6 +27,9 @@ builder.Services.AddDbContext<HungDuyHospitalityContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISmsOtpRepository, SmsOtpRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
+builder.Services.AddScoped<IKhachHangRepository, KhachHangRepository>();
+builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
+builder.Services.AddScoped<ILichSuMuaGoiDichVuRepository, LichSuMuaGoiDichVuRepository>();
 
 // ================== Add Services ==================
 builder.Services.AddScoped<INotificationService, NotificationService>();
