@@ -24,7 +24,7 @@ namespace HospitalityCustomerAPI.Repositories
                                      {
                                          MaGoiDichVu = t.Ma,
                                          TenGoiDichVu = dv.Ten,
-                                         Ngay = t.NgayCheckIn.Value.ToString("dd/MM/yyyy"),
+                                         Ngay = t.NgayCheckIn.Value.ToString("dd/MM/yyyy hh:mm"),
                                      }).ToList();
 
             return listLishSuCheckIn;
