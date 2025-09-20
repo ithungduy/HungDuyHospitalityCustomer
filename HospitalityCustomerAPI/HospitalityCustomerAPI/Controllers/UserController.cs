@@ -228,61 +228,59 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 return new ResponseModelError("Khách hàng không tồn tại");
             }
-            HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn item = new()
+            var item = new HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
                 MaPhongBan = diemBanHang.MaPhongBan,
                 MaDiemBanHang = diemBanHang.Ma,
-                MaLichSuGoiDichVu = goiDichVu != null ? goiDichVu.Ma : null,
-                MaKhachHang = khachHang != null ? khachHang.Ma : null,
+                MaLichSuGoiDichVu = goiDichVu.Ma,
+                MaKhachHang = khachHang.Ma,
                 NgayCheckIn = DateTime.Now,
             };
 
-            HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn itemPos = new()
+            var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
                 MaPhongBan = diemBanHang.MaPhongBan,
                 MaDiemBanHang = diemBanHang.Ma,
-                MaLichSuGoiDichVu = goiDichVu != null ? goiDichVu.Ma : null,
-                MaKhachHang = khachHang != null ? khachHang.Ma : null,
+                MaLichSuGoiDichVu = goiDichVu.Ma,
+                MaKhachHang = khachHang.Ma,
                 NgayCheckIn = DateTime.Now,
             };
 
-            var txOptions = new TransactionOptions
+            await using var tran1 = await _context.Database.BeginTransactionAsync();
+            await using var tran2 = await _posdbcontext.Database.BeginTransactionAsync();
+
+            try
             {
-                IsolationLevel = IsolationLevel.ReadCommitted,
-                Timeout = TransactionManager.MaximumTimeout
-            };
+                _context.Add(item);
 
-            using (var scope = new TransactionScope(TransactionScopeOption.Required, txOptions, TransactionScopeAsyncFlowOption.Enabled))
+                goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
+                goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
+                _context.Update(goiDichVu);
+
+                await _context.SaveChangesAsync();
+                await tran1.CommitAsync();
+
+                _posdbcontext.Add(itemPos);
+
+                lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
+                lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanDaSuDung ?? 0);
+                _posdbcontext.Update(lichSuGoiDV);
+
+                await _posdbcontext.SaveChangesAsync();
+                await tran2.CommitAsync();
+
+                return new ResponseModelSuccess("Đã check in");
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    _context.Add(item);
-                    await _context.SaveChangesAsync();
-
-                    goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
-                    goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
-                    _context.Update(goiDichVu);
-                    await _context.SaveChangesAsync();
-
-                    lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
-                    lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanDaSuDung ?? 0);
-                    _posdbcontext.Update(goiDichVu);
-                    await _posdbcontext.SaveChangesAsync();
-
-                    _context.Add(itemPos);
-                    await _posdbcontext.SaveChangesAsync();
-
-                    scope.Complete();
-                    return new ResponseModelSuccess("Đã check in");
-                }
-                catch (Exception ex)
-                {
-                    return new ResponseModelError(ex.Message);
-                }
+                await tran1.RollbackAsync();
+                await tran2.RollbackAsync();
+                return new ResponseModelError($"Checkin thất bại: {ex.Message}");
             }
         }
+
         [HttpPost("GetListGoiDichVuConSuDung")]
         [TokenUserCheckHTTP]
         public ResponseModel GetListGoiDichVuConSuDung(string MaKhachHang)
