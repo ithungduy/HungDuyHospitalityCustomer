@@ -236,6 +236,7 @@ namespace HospitalityCustomerAPI.Controllers
                 MaLichSuGoiDichVu = goiDichVu.Ma,
                 MaKhachHang = khachHang.Ma,
                 NgayCheckIn = DateTime.Now,
+                CreatedDate = DateTime.Now,                
             };
 
             var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
@@ -247,6 +248,7 @@ namespace HospitalityCustomerAPI.Controllers
                 MaKhachHang = khachHang.Ma,
                 NgayCheckIn = DateTime.Now,
                 CreatedDate = DateTime.Now,
+                MaCheckInKhacHang = item.Ma,
             };
 
             await using var tran1 = await _context.Database.BeginTransactionAsync();
