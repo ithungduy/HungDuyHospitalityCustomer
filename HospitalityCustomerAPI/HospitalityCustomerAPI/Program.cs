@@ -54,4 +54,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+//dòng app run này chiến xài để debug đừng xóa
+//app.Run("http://0.0.0.0:5000");
 app.Run();

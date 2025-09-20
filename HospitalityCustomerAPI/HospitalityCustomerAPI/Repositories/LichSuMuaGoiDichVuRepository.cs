@@ -28,7 +28,7 @@ namespace HospitalityCustomerAPI.Repositories
                         MaLichSuGoiDichVu = t.Ma,
                         TenGoiDichVu = dv.Ten,
                         NgayKichHoat = t.CreatedDate,
-                        SoLan = t.SoLanDaSuDung ?? 0,
+                        SoLan = t.SoLanSuDung ?? 0,
                         SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
                         ConLai = t.SoLanConLai ?? 0,
                     }).ToList();
@@ -45,7 +45,7 @@ namespace HospitalityCustomerAPI.Repositories
                         MaLichSuGoiDichVu = t.Ma,
                         TenGoiDichVu = dv.Ten,
                         NgayKichHoat = t.CreatedDate,
-                        SoLan = t.SoLanDaSuDung ?? 0,
+                        SoLan = t.SoLanSuDung ?? 0,
                         SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
                         ConLai = t.SoLanConLai ?? 0,
                     }).ToList();
