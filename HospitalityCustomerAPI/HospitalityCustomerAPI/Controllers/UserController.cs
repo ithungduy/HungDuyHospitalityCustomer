@@ -246,6 +246,7 @@ namespace HospitalityCustomerAPI.Controllers
                 MaLichSuGoiDichVu = goiDichVu.Ma,
                 MaKhachHang = khachHang.Ma,
                 NgayCheckIn = DateTime.Now,
+                CreatedDate = DateTime.Now,
             };
 
             await using var tran1 = await _context.Database.BeginTransactionAsync();
