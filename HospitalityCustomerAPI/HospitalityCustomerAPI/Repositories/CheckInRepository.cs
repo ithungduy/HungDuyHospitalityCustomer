@@ -1,6 +1,5 @@
 ﻿using HospitalityCustomerAPI.DTO.CheckIn;
 using HospitalityCustomerAPI.Models.HCAEntity;
-using HospitalityCustomerAPI.Models.POSEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +24,7 @@ namespace HospitalityCustomerAPI.Repositories
                                      {
                                          MaGoiDichVu = t.Ma,
                                          TenGoiDichVu = dv.Ten,
-                                         Ngay = t.CreatedDate,
+                                         Ngay = t.NgayCheckIn.Value.ToString("dd/MM/yyyy"),
                                      }).ToList();
 
             return listLishSuCheckIn;
