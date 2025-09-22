@@ -28,7 +28,7 @@ namespace HRMUngTuyen.Controllers
 
 
         [HttpGet("quocgia")]
-        [TokenUserCheckHTTP]
+        [APIKeyCheck]
         public async Task<ResponseModel> GetQuocGiaList()
         {
             var quocGias = await _quocGiaRepository.GetAllAsync();
@@ -39,7 +39,7 @@ namespace HRMUngTuyen.Controllers
 
 
         [HttpGet("tinhthanh")]
-        [TokenUserCheckHTTP]
+        [APIKeyCheck]
         public async Task<ResponseModel> GetTinhThanhList([FromQuery] string maQuocGia)
         {
             if (string.IsNullOrEmpty(maQuocGia))
@@ -52,7 +52,7 @@ namespace HRMUngTuyen.Controllers
         }
 
         [HttpGet("phuongxa")]
-        [TokenUserCheckHTTP]
+        [APIKeyCheck]
         public async Task<ResponseModel> GetPhuongXaListByTinhThanh([FromQuery] string maTinhThanh)
         {
             if (string.IsNullOrEmpty(maTinhThanh))
