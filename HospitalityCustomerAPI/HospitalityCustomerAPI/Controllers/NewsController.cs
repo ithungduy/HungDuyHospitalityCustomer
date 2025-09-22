@@ -54,7 +54,7 @@ namespace HospitalityCustomerAPI.Controllers
 
         [HttpGet("/news/videos")]
         [APIKeyCheck]
-        public Task<ResponseModel<IReadOnlyList<VideoAdsDto>>> GetVideos(CancellationToken ct = default)
-            => _newsRepository.GetVideosAsync(ct);
+        public Task<ResponseModel<PagedResult<VideoAdsDto>>> GetVideos([FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
+            => _newsRepository.GetVideosAsync(page, pageSize, ct);
     }
 }

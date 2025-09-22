@@ -168,24 +168,36 @@ namespace HospitalityCustomerAPI.Repositories
             return ResponseModel<IReadOnlyList<NewsItemDto>>.Ok(data);
         }
 
-        public async Task<ResponseModel<IReadOnlyList<VideoAdsDto>>> GetVideosAsync(CancellationToken ct)
+        public async Task<ResponseModel<PagedResult<VideoAdsDto>>> GetVideosAsync(int page, int pageSize, CancellationToken ct)
         {
-            var data = await _context.NwsVideoAds.AsNoTracking()
-                .Where(t => !(t.Deleted ?? false) && (t.Status ?? false))
-                .OrderByDescending(x => x.CreatedDate)
-                .Take(5)
-                .Select(x => new VideoAdsDto
-                {
-                    Ma = x.Ma,
-                    Ten = x.Ten ?? "",
-                    Link = x.Link,
-                    LinkWeb = x.LinkWeb,
-                    Thumbnail = x.Thumbnail,
-                    Status = x.Status ?? false
-                })
-                .ToListAsync(ct);
+            var q = _context.NwsVideoAds.AsNoTracking()
+                .Where(t => !(t.Deleted ?? false) && (t.Status ?? false));
 
-            return ResponseModel<IReadOnlyList<VideoAdsDto>>.Ok(data);
+            var total = await q.CountAsync(ct);
+
+            var items = await q.OrderByDescending(x => x.CreatedDate)
+                               .Skip((page - 1) * pageSize)
+                               .Take(pageSize)
+                               .Select(x => new VideoAdsDto
+                               {
+                                   Ma = x.Ma,
+                                   Ten = x.Ten ?? "",
+                                   Link = x.Link,
+                                   LinkWeb = x.LinkWeb,
+                                   Thumbnail = x.Thumbnail,
+                                   Status = x.Status ?? false,
+                                   NgayTao = x.CreatedDate
+                               })
+                               .ToListAsync(ct);
+
+            var payload = new PagedResult<VideoAdsDto>
+            {
+                Items = items,
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+            return ResponseModel<PagedResult<VideoAdsDto>>.Ok(payload);
         }
     }
 }

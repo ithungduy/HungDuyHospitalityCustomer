@@ -20,6 +20,9 @@
         public string? LinkWeb { get; set; }
         public string? Thumbnail { get; set; }
         public bool Status { get; set; }
+        public DateTime? NgayTao { get; set; }
+
+
     }
 
     public sealed class PagedResult<T>

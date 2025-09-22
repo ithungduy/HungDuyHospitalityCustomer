@@ -12,6 +12,6 @@ namespace HospitalityCustomerAPI.Repositories.IRepositories
 
         Task<ResponseModel<PagedResult<NewsItemDto>>> GetNewsAsync(Guid? maLoai, int page, int pageSize, CancellationToken ct);
         Task<ResponseModel<IReadOnlyList<NewsItemDto>>> GetHighlightedAsync(CancellationToken ct);
-        Task<ResponseModel<IReadOnlyList<VideoAdsDto>>> GetVideosAsync(CancellationToken ct);
+        Task<ResponseModel<PagedResult<VideoAdsDto>>> GetVideosAsync(int page, int pageSize, CancellationToken ct);
     }
 }
