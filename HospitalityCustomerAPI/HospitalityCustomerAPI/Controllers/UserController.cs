@@ -54,7 +54,7 @@ namespace HospitalityCustomerAPI.Controllers
 
 
         [HttpPost("Register")]
-        [APIKeyCheck]
+        //[APIKeyCheck]
         public ResponseModel Register([FromForm] UserRegisterDto dto)
         {
             AttachCountryCodeForPhoneNumber(dto.Username, out var username);
@@ -339,6 +339,8 @@ namespace HospitalityCustomerAPI.Controllers
             var sysUser = _userRepository.GetItem(objToken.userid);
 
             var phoneNumber = sysUser.Username;
+
+            AttachCountryCodeForPhoneNumber(phoneNumber, out phoneNumber);
 
             var khachHang = _khachHangRepository.GetKhachHangByPhone(phoneNumber);
 

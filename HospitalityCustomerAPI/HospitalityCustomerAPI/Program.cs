@@ -2,6 +2,8 @@
 using HospitalityCustomerAPI.Models.POSEntity;
 using HospitalityCustomerAPI.Repositories;
 using HospitalityCustomerAPI.Repositories.IRepositories;
+using HospitalityCustomerAPI.Repository;
+using HospitalityCustomerAPI.Repository.IRepository;
 using HospitalityCustomerAPI.Services;
 using HospitalityCustomerAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //scaffold-dbcontext 'Name=ConnectionStrings:HCA' microsoft.entityframeworkcore.sqlserver -outputdir Models/HCAEntity -f -NoPluralize
-//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn, tbl_DiemBanHang, tbl_KhachHang
+//scaffold-dbcontext 'Name=ConnectionStrings:POS' microsoft.entityframeworkcore.sqlserver -outputdir Models/POSEntity -f -NoPluralize -tables ops_LichSuMuaGoiDichVu, ops_CheckIn, tbl_DiemBanHang, tbl_KhachHang, cat_PhuongXa, cat_QuocGia, cat_TinhThanh
 
 builder.Services.AddDbContext<HungDuyHospitalityCustomerContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("HCA")));
@@ -32,6 +34,9 @@ builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<ILichSuMuaGoiDichVuRepository, LichSuMuaGoiDichVuRepository>();
 builder.Services.AddScoped<ILichSuMuaGoiDichVuPOSRepository, LichSuMuaGoiDichVuPOSRepository>();
 builder.Services.AddScoped<IDiemBanHangPOSRepository, DiemBanHangPOSRepository>();
+builder.Services.AddScoped<IQuocGiaRepository, QuocGiaRepository>();
+builder.Services.AddScoped<ITinhThanhRepository, TinhThanhRepository>();
+builder.Services.AddScoped<IPhuongXaRepository, PhuongXaRepository>();
 
 // ================== Add Services ==================
 builder.Services.AddScoped<INotificationService, NotificationService>();

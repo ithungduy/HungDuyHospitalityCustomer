@@ -42,4 +42,10 @@ namespace HospitalityCustomerAPI.Common
         [EnumGuid("7f151c56-efaa-48ba-89d0-bc45ca97645f")]
         NoiBat,
     }
+
+    public enum QuocGia
+    {
+        [EnumGuid("A47E59D0-6ABD-4E28-8556-9FB83A95F613")]
+        VietNam
+    }
 }
