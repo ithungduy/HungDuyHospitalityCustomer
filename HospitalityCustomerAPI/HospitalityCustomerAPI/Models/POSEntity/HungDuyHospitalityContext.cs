@@ -15,6 +15,12 @@ public partial class HungDuyHospitalityContext : DbContext
     {
     }
 
+    public virtual DbSet<CatPhuongXa> CatPhuongXa { get; set; }
+
+    public virtual DbSet<CatQuocGia> CatQuocGia { get; set; }
+
+    public virtual DbSet<CatTinhThanh> CatTinhThanh { get; set; }
+
     public virtual DbSet<OpsCheckIn> OpsCheckIn { get; set; }
 
     public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
@@ -28,6 +34,54 @@ public partial class HungDuyHospitalityContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<CatPhuongXa>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("cat_PhuongXa");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CatQuocGia>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("cat_QuocGia");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CatTinhThanh>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("cat_TinhThanh");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<OpsCheckIn>(entity =>
         {
             entity.HasKey(e => e.Ma).HasName("PK_chk_CheckIn");
@@ -90,6 +144,7 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.DiaChi).HasMaxLength(200);
             entity.Property(e => e.HanMucCongNo).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.IsCompany).HasColumnName("isCompany");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.Msnv)
                 .HasMaxLength(50)

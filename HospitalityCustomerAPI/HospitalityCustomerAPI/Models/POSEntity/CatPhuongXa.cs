@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HospitalityCustomerAPI.Models.POSEntity;
 
-public partial class TblKhachHang
+public partial class CatPhuongXa
 {
     public Guid Ma { get; set; }
 
@@ -11,35 +11,11 @@ public partial class TblKhachHang
 
     public string? Ten { get; set; }
 
-    public string? Cccd { get; set; }
-
-    public string? SoDienThoai { get; set; }
-
-    public int? GioiTinh { get; set; }
-
-    public DateTime? NgaySinh { get; set; }
-
-    public string? DiaChi { get; set; }
-
-    public Guid? MaQuocGia { get; set; }
-
     public Guid? MaTinhThanh { get; set; }
 
-    public Guid? MaPhuongXa { get; set; }
-
-    public Guid? MaLoaiKhachHang { get; set; }
+    public Guid? MaHuyen { get; set; }
 
     public bool? Status { get; set; }
-
-    public bool? ChoPhepCongNo { get; set; }
-
-    public decimal? HanMucCongNo { get; set; }
-
-    public int? Diem { get; set; }
-
-    public bool? IsCompany { get; set; }
-
-    public string? Msnv { get; set; }
 
     public Guid? UserCreated { get; set; }
 
@@ -54,4 +30,6 @@ public partial class TblKhachHang
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public int? Version { get; set; }
 }
