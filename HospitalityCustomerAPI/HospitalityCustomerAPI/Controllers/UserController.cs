@@ -142,6 +142,7 @@ namespace HospitalityCustomerAPI.Controllers
 
             entity.HinhAnh = dto.HinhAnh;
             entity.FullName = dto.HoTen;
+           
             entity.NgaySinh = dtpNgaySinh;
             entity.GioiTinh = dto.GioiTinh;
             entity.MaQuocGia = dto.MaQuocGia;
@@ -357,6 +358,14 @@ namespace HospitalityCustomerAPI.Controllers
                 HinhAnh = sysUser?.HinhAnh,
                 NgaySinh = sysUser?.NgaySinh.Value.ToString("dd/MM/yyyy"),
                 GioiTinh = sysUser?.GioiTinh,
+
+                //Sử dụng cho địa chỉ
+                SoNha = sysUser?.SoNha,
+                MaQuocGia = sysUser?.MaQuocGia,
+                MaTinh = sysUser?.MaTinh,
+                MaPhuongXa = sysUser?.MaPhuongXa,
+                //CCCD
+                HoChieu = sysUser?.HoChieu,
 
                 MaKhachHang = khachHang?.Ma ?? Guid.Empty,
                 Ten = khachHang?.Ten,
