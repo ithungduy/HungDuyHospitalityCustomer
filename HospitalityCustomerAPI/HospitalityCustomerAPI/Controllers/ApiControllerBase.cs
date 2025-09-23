@@ -34,7 +34,7 @@ namespace HospitalityCustomerAPI.Controllers
         {
             if (!string.IsNullOrEmpty(phoneNumber) && phoneNumber.StartsWith("84"))
             {
-                phoneNumberAttach = "0" + phoneNumber.Substring(1);
+                phoneNumberAttach = "0" + phoneNumber.Substring(2);
             }
             else
             {
