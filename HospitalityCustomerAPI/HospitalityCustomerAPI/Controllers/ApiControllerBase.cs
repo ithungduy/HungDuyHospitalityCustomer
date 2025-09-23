@@ -32,9 +32,9 @@ namespace HospitalityCustomerAPI.Controllers
         
         protected void AttachCountryCodeForPhoneNumber(in string phoneNumber, out string phoneNumberAttach)
         {
-            if (!string.IsNullOrEmpty(phoneNumber) && phoneNumber.StartsWith("0"))
+            if (!string.IsNullOrEmpty(phoneNumber) && phoneNumber.StartsWith("84"))
             {
-                phoneNumberAttach = "84" + phoneNumber.Substring(1);
+                phoneNumberAttach = "0" + phoneNumber.Substring(1);
             }
             else
             {

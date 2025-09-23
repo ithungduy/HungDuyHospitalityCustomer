@@ -54,7 +54,7 @@ namespace HospitalityCustomerAPI.Controllers
 
 
         [HttpPost("Register")]
-        //[APIKeyCheck]
+        [APIKeyCheck]
         public ResponseModel Register([FromForm] UserRegisterDto dto)
         {
             AttachCountryCodeForPhoneNumber(dto.Username, out var username);
@@ -93,10 +93,13 @@ namespace HospitalityCustomerAPI.Controllers
                 HoChieu = dto.HoChieu,
                 MaDanToc = dto.MaDanToc
             };
+
             string sodt = username.StartsWith("84")
                         ? username.Replace("84", "0")
                         : username;
-            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => (x.SoDienThoai == username ||x.SoDienThoai ==sodt ) && !(x.Deleted ?? false));
+
+            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => (x.SoDienThoai == username ||x.SoDienThoai == sodt ) && !(x.Deleted ?? false));
+            
             if (khachHang == null)
             {
                 khachHang = new TblKhachHang
@@ -357,21 +360,21 @@ namespace HospitalityCustomerAPI.Controllers
                 Username = sysUser?.Username,
                 FullName = sysUser?.FullName,
                 HinhAnh = sysUser?.HinhAnh,
-                NgaySinh = sysUser?.NgaySinh.Value.ToString("dd/MM/yyyy"),
+                NgaySinh = sysUser?.NgaySinh?.ToString("dd/MM/yyyy"),
                 GioiTinh = sysUser?.GioiTinh,
 
                 //Sử dụng cho địa chỉ
                 SoNha = sysUser?.SoNha,
-                MaQuocGia = sysUser?.MaQuocGia,
-                MaTinh = sysUser?.MaTinh,
-                MaPhuongXa = sysUser?.MaPhuongXa,
+                MaQuocGia = sysUser?.MaQuocGia ?? Guid.Empty,
+                MaTinh = sysUser?.MaTinh ?? Guid.Empty,
+                MaPhuongXa = sysUser?.MaPhuongXa ?? Guid.Empty,
                 //CCCD
-                HoChieu = sysUser?.HoChieu,
+                HoChieu = sysUser?.HoChieu ?? "",
 
                 MaKhachHang = khachHang?.Ma ?? Guid.Empty,
-                Ten = khachHang?.Ten,
-                SoDienThoai = khachHang?.SoDienThoai,
-                DiaChi = khachHang?.DiaChi
+                Ten = khachHang?.Ten ?? "",
+                SoDienThoai = khachHang?.SoDienThoai ?? "",
+                DiaChi = khachHang?.DiaChi ?? ""
             };
 
             return new ResponseModelSuccess("Thành công", dto);
