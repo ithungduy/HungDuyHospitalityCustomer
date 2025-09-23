@@ -93,16 +93,18 @@ namespace HospitalityCustomerAPI.Controllers
                 HoChieu = dto.HoChieu,
                 MaDanToc = dto.MaDanToc
             };
-
-            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => x.SoDienThoai == username && !(x.Deleted ?? false));
+            string sodt = username.StartsWith("84")
+                        ? username.Replace("84", "0")
+                        : username;
+            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => (x.SoDienThoai == username ||x.SoDienThoai ==sodt ) && !(x.Deleted ?? false));
             if (khachHang == null)
             {
                 khachHang = new TblKhachHang
                 {
                     Ma = Guid.NewGuid(),
-                    SoDienThoai = username,
+                    SoDienThoai = sodt,
                     Ten = (dto.HoTen + "").ToUpper(),
-                    Code = username,
+                    Code = sodt,
                     GioiTinh = dto.GioiTinh,
                     DiaChi = dto.SoNha + "",
                     NgaySinh = dtpNgaySinh,
@@ -110,7 +112,6 @@ namespace HospitalityCustomerAPI.Controllers
                 };
                 _posdbcontext.Add(khachHang);
                 _posdbcontext.SaveChanges();
-
             }
             entity.MaKhachHang = khachHang != null ? khachHang.Ma : null;
             var result = _userRepository.Add(entity);
