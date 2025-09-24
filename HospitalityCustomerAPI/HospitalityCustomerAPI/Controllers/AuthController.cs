@@ -20,6 +20,7 @@ namespace HospitalityCustomerAPI.Controllers
         private static string appver = "1:1.0.0+3";
         private static string messIdSuccess = "";
 
+        private readonly HungDuyHospitalityCustomerContext _hungDuyHospitalityCustomerContext;
         private readonly INotificationService _notificationService;
         private readonly IUserRepository _userRepository;
         private readonly ISmsOtpRepository _smsOtpRepository;
@@ -29,7 +30,7 @@ namespace HospitalityCustomerAPI.Controllers
                         IUserRepository userRepository, ISmsOtpRepository smsOtpRepository
                 ) : base(hungDuyHospitalityCustomerContext)
         {
-            //_hungDuyHospitalityCustomerContext = hungDuyHospitalityCustomerContext;
+            _hungDuyHospitalityCustomerContext = hungDuyHospitalityCustomerContext;
             _notificationService = notificationService;
             _userRepository = userRepository;
             _smsOtpRepository = smsOtpRepository;
@@ -70,12 +71,13 @@ namespace HospitalityCustomerAPI.Controllers
                 string obj = Utility.Base64Encode(JsonConvert.SerializeObject(objToken));
                 string sign = Utility.GetSHA256(obj + PASSCODE + DateTime.Now.ToString("yyyyMM"));
                 string token = obj + "." + sign;
+                var spec = _hungDuyHospitalityCustomerContext.SysAppVersion.Select(x => x.Appver).FirstOrDefault() ?? "1:1.0.0";
 
                 var dto = new UserResponseDto
                 {
                     Ma = user.Ma,
                     Username = username,
-                    AppVersion = appver,
+                    AppVersion = spec,
                     Token = token,
                     DeviceId = !string.IsNullOrEmpty(loginDto.DeviceID) ? loginDto.DeviceID : storedDeviceID,
                 };
