@@ -17,7 +17,7 @@ namespace HospitalityCustomerAPI.Controllers
     public class AuthController : ApiControllerBase
     {
         private const string PASSCODE = "hcapasscode";
-        private static string appver = "1.0.0";
+        private static string appver = "1:1.0.0+3";
         private static string messIdSuccess = "";
 
         private readonly INotificationService _notificationService;
@@ -29,6 +29,7 @@ namespace HospitalityCustomerAPI.Controllers
                         IUserRepository userRepository, ISmsOtpRepository smsOtpRepository
                 ) : base(hungDuyHospitalityCustomerContext)
         {
+            //_hungDuyHospitalityCustomerContext = hungDuyHospitalityCustomerContext;
             _notificationService = notificationService;
             _userRepository = userRepository;
             _smsOtpRepository = smsOtpRepository;

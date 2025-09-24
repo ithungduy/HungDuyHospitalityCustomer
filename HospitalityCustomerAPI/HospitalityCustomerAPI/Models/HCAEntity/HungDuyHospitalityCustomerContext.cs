@@ -25,6 +25,8 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
     public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
 
+    public virtual DbSet<SysAppVersion> SysAppVersion { get; set; }
+
     public virtual DbSet<SysNotifications> SysNotifications { get; set; }
 
     public virtual DbSet<SysSmsOtp> SysSmsOtp { get; set; }
@@ -93,6 +95,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.MaCheckInPos).HasColumnName("MaCheckInPOS");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.NgayCheckIn).HasColumnType("datetime");
             entity.Property(e => e.TienPhuCap).HasColumnType("decimal(18, 0)");
@@ -109,6 +112,16 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<SysAppVersion>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("sys_AppVersion");
+
+            entity.Property(e => e.Appver).HasMaxLength(64);
+            entity.Property(e => e.Description).HasMaxLength(2000);
         });
 
         modelBuilder.Entity<SysNotifications>(entity =>

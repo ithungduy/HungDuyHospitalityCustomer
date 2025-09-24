@@ -42,4 +42,6 @@ public partial class OpsCheckIn
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public Guid? MaCheckInPos { get; set; }
 }
