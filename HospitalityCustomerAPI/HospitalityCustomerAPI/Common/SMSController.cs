@@ -20,7 +20,7 @@ namespace HospitalityCustomerAPI.Common
         static public async Task<bool> sendSMS(string phone, string message)
         {
             //return false; // khóa SMS ở đê
-            if (phone.Length != 11)
+            if (phone.Length != 10 && phone.Length != 11)
             {
                 return false;
             }

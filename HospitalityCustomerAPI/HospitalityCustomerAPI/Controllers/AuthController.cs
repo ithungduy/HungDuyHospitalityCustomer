@@ -104,11 +104,11 @@ namespace HospitalityCustomerAPI.Controllers
             if (string.IsNullOrWhiteSpace(phone))
                 return new ResponseModelError("Null");
 
-            if (phone.Length < 11)
+            if (phone.Length < 10)
             {
                 AttachCountryCodeForPhoneNumber(phone, out phone);
             }
-            if (phone.Length > 11)
+            if (phone.Length > 10)
             {
                 return new ResponseModelError("Số điện thoại không đúng định dạng");
             }

@@ -50,19 +50,20 @@ namespace HospitalityCustomerAPI.Repositories
         {
             return GetItemByPhone(phoneNumber) != null;
         }
-
         public int AddOTP(string phoneNumber)
         {
             string otp = Utility.RandomNumber(otpLength);
+
             var s = new SysSmsOtp
             {
+                Ma = Guid.NewGuid(),  
                 Sdt = phoneNumber,
                 Otp = Utility.GetSHA512(phoneNumber + DateTime.Now.ToString("yyyyMM") + otp),
                 CreateDate = DateTime.Now,
                 NumberRequest = 1
             };
 
-            _context.Add(s);
+            _context.SysSmsOtp.Add(s);
             if (_context.SaveChanges() > 0)
             {
                 _ = SMSController.sendSMS(phoneNumber,

@@ -154,7 +154,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.GiaTriGiaoDich).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Otp)
-                .HasMaxLength(20)
+                .HasMaxLength(200)
                 .IsFixedLength();
             entity.Property(e => e.Sdt)
                 .HasMaxLength(20)
