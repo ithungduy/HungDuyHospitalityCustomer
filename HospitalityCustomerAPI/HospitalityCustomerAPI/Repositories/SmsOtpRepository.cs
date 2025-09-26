@@ -1,7 +1,7 @@
 ﻿using HospitalityCustomerAPI.Common;
 using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
-using Microsoft.AspNetCore.Mvc;
+// using Microsoft.AspNetCore.Mvc; // không dùng ở repository -> có thể bỏ
 
 namespace HospitalityCustomerAPI.Repositories
 {
@@ -50,13 +50,14 @@ namespace HospitalityCustomerAPI.Repositories
         {
             return GetItemByPhone(phoneNumber) != null;
         }
+
         public int AddOTP(string phoneNumber)
         {
             string otp = Utility.RandomNumber(otpLength);
 
             var s = new SysSmsOtp
             {
-                Ma = Guid.NewGuid(),  
+                Ma = Guid.NewGuid(),
                 Sdt = phoneNumber,
                 Otp = Utility.GetSHA512(phoneNumber + DateTime.Now.ToString("yyyyMM") + otp),
                 CreateDate = DateTime.Now,
@@ -66,8 +67,8 @@ namespace HospitalityCustomerAPI.Repositories
             _context.SysSmsOtp.Add(s);
             if (_context.SaveChanges() > 0)
             {
-                _ = SMSController.sendSMS(phoneNumber,
-                    $"Mã OTP có hiệu lực 5 phút. Mã xác thực HospitalityCustomerAPI là: {otp}");
+                // Gửi theo TEMPLATE (HungDuyHospitality style) – hiệu lực 5 phút
+                _ = SMSController.sendOTP(phoneNumber, otp, "5");
                 return ActionStatus.Success.toInt();
             }
             return ActionStatus.Error.toInt();
@@ -86,8 +87,8 @@ namespace HospitalityCustomerAPI.Repositories
             _context.Update(s);
             if (_context.SaveChanges() > 0)
             {
-                _ = SMSController.sendSMS(phoneNumber,
-                    $"Mã OTP có hiệu lực 5 phút. Mã xác thực HospitalityCustomerAPI là: {otp}");
+                // Gửi theo TEMPLATE (HungDuyHospitality style) – hiệu lực 5 phút
+                _ = SMSController.sendOTP(phoneNumber, otp, "5");
                 return ActionStatus.Success.toInt();
             }
             return ActionStatus.Error.toInt();
