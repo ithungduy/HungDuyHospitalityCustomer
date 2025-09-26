@@ -52,17 +52,66 @@ namespace HospitalityCustomerAPI.Controllers
             _lichSuMuaGoiDichVuPOSRepository = lichSuMuaGoiDichVuPOSRepository;
         }
 
-
         [HttpPost("Register")]
         [APIKeyCheck]
-        public ResponseModel Register([FromForm] UserRegisterDto dto)
+        public ResponseModel Register([FromForm] UserRegisterDto dto, [FromForm] bool isDev = false)
         {
+            // 0) Chuẩn hóa SĐT & kiểm tra đã tồn tại
             AttachCountryCodeForPhoneNumber(dto.Username, out var username);
             if (_userRepository.GetItemByPhone(username) != null)
             {
                 return new ResponseModelError("Số điện thoại đã được dùng");
             }
 
+            // 0.1) Nếu isDev = true → BỎ QUA OTP, vào thẳng luồng tạo user
+            if (isDev)
+            {
+                return CreateUserAndSyncPos(dto, username);
+            }
+
+            // 1) Nếu CHƯA gửi kèm OTP → phát OTP & trả OTPrequied
+            if (string.IsNullOrWhiteSpace(dto.Otp))
+            {
+                if (_smsOtpRepository.CheckPhoneExist(username))
+                {
+                    if (!_smsOtpRepository.CheckOTPNeedToRenew(username))
+                    {
+                        return new ResponseModel("OTPrequied", "Bạn đã yêu cầu OTP và vẫn còn hiệu lực.");
+                    }
+                    if (_smsOtpRepository.CheckOTPLimit(username))
+                    {
+                        return new ResponseModelError("Bạn đã vượt số lần nhận OTP tối đa của tháng!");
+                    }
+                    if (_smsOtpRepository.UpdateOTP(username) == ActionStatus.Success.toInt())
+                    {
+                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra SMS.");
+                    }
+                    return new ResponseModelError("Không thể gửi lại OTP. Vui lòng thử lại.");
+                }
+                else
+                {
+                    if (_smsOtpRepository.AddOTP(username) == ActionStatus.Success.toInt())
+                    {
+                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra SMS.");
+                    }
+                    return new ResponseModelError("Không thể gửi OTP. Vui lòng thử lại.");
+                }
+            }
+
+            // 2) ĐÃ có OTP → kiểm tra hợp lệ
+            if (!_smsOtpRepository.CheckOTPValid(username, dto.Otp!))
+            {
+                return new ResponseModelError("Mã OTP không đúng hoặc đã hết hạn.");
+            }
+
+            // 3) Đúng OTP → tạo user
+            return CreateUserAndSyncPos(dto, username);
+        }
+
+        // Helper: tái sử dụng đoạn tạo SysUser + đồng bộ POS
+        private ResponseModel CreateUserAndSyncPos(UserRegisterDto dto, string username)
+        {
+            // Parse ngày sinh (nếu có)
             DateTime? dtpNgaySinh = null;
             if (!string.IsNullOrEmpty(dto.NgaySinh))
             {
@@ -94,12 +143,12 @@ namespace HospitalityCustomerAPI.Controllers
                 MaDanToc = dto.MaDanToc
             };
 
-            string sodt = username.StartsWith("84")
-                        ? username.Replace("84", "0")
-                        : username;
+            // Đồng bộ POS (TblKhachHang)
+            string sodt = username.StartsWith("84") ? username.Replace("84", "0") : username;
+            TblKhachHang? khachHang = _posdbcontext.TblKhachHang
+                .AsNoTracking()
+                .FirstOrDefault(x => (x.SoDienThoai == username || x.SoDienThoai == sodt) && !(x.Deleted ?? false));
 
-            TblKhachHang ? khachHang = _posdbcontext.TblKhachHang.AsNoTracking().FirstOrDefault(x => (x.SoDienThoai == username ||x.SoDienThoai == sodt ) && !(x.Deleted ?? false));
-            
             if (khachHang == null)
             {
                 khachHang = new TblKhachHang
@@ -116,10 +165,14 @@ namespace HospitalityCustomerAPI.Controllers
                 _posdbcontext.Add(khachHang);
                 _posdbcontext.SaveChanges();
             }
-            entity.MaKhachHang = khachHang != null ? khachHang.Ma : null;
+
+            entity.MaKhachHang = khachHang?.Ma;
+
             var result = _userRepository.Add(entity);
             return result.isSuccess() ? ResponseRegisterSuccessfully : ResponseAddFailure;
         }
+
+
 
         [HttpPost("Update")]
         [TokenUserCheckHTTP]
