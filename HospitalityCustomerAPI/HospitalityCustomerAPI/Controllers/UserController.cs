@@ -131,7 +131,7 @@ namespace HospitalityCustomerAPI.Controllers
                 Username = username,
                 Password = dto.Password,
                 HinhAnh = dto.HinhAnh,
-                FullName = dto.HoTen,
+                FullName = (dto.HoTen + "").ToUpper(),
                 NgaySinh = dtpNgaySinh,
                 GioiTinh = dto.GioiTinh,
                 MaQuocGia = dto.MaQuocGia,
