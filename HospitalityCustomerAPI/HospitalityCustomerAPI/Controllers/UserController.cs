@@ -62,7 +62,10 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 return new ResponseModelError("Số điện thoại đã được dùng");
             }
-
+            if (dto.HoTen + "" == "")
+            {
+                return new ResponseModelError("Vui lòng nhập họ tên");
+            }
             // 0.1) Nếu isDev = true → BỎ QUA OTP, vào thẳng luồng tạo user
             if (isDev)
             {
