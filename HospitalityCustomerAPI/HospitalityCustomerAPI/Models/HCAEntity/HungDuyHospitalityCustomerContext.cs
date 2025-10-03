@@ -185,18 +185,14 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.HinhAnh)
                 .HasMaxLength(200)
                 .IsUnicode(false);
-            entity.Property(e => e.HoChieu)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+            entity.Property(e => e.HoChieu).HasMaxLength(100);
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.NgaySinh).HasColumnType("datetime");
             entity.Property(e => e.Password).HasMaxLength(300);
             entity.Property(e => e.SoDienThoai)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.SoNha)
-                .HasMaxLength(500)
-                .IsUnicode(false);
+            entity.Property(e => e.SoNha).HasMaxLength(500);
             entity.Property(e => e.Token)
                 .HasMaxLength(200)
                 .IsUnicode(false);
