@@ -44,7 +44,8 @@ namespace HospitalityCustomerAPI.Repositories
                     {
                         MaLichSuGoiDichVu = t.Ma,
                         TenGoiDichVu = dv.Ten,
-                        NgayKichHoat = t.CreatedDate,
+                        NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
+                        NgayHetHan = t.NgayHetHan,
                         SoLan = t.SoLanSuDung ?? 0,
                         SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
                         ConLai = t.SoLanConLai ?? 0,
