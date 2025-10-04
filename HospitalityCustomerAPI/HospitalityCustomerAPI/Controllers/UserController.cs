@@ -287,20 +287,23 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 return new ResponseModelError("Gói dịch vụ không tồn tại");
             }
-
-            var khachHang = _userRepository.GetItemByKhachHang(user.MaKhachHang.Value);
-
-            if (khachHang == null)
+            if (goiDichVu != null && goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
             {
-                return new ResponseModelError("Khách hàng không tồn tại");
+                return new ResponseModelError("Gói dịch vụ hết hạn");
             }
+            //var khachHang = _userRepository.GetItemByKhachHang(user.MaKhachHang.Value);
+
+            //if (khachHang == null)
+            //{
+            //    return new ResponseModelError("Khách hàng không tồn tại");
+            //}
             var item = new HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
                 MaPhongBan = diemBanHang.MaPhongBan,
                 MaDiemBanHang = diemBanHang.Ma,
                 MaLichSuGoiDichVu = goiDichVu.Ma,
-                MaKhachHang = khachHang.Ma,
+                MaKhachHang = user.MaKhachHang,
                 NgayCheckIn = DateTime.Now,
                 CreatedDate = DateTime.Now,                
             };
@@ -311,7 +314,7 @@ namespace HospitalityCustomerAPI.Controllers
                 MaPhongBan = diemBanHang.MaPhongBan,
                 MaDiemBanHang = diemBanHang.Ma,
                 MaLichSuGoiDichVu = goiDichVu.Ma,
-                MaKhachHang = khachHang.Ma,
+                MaKhachHang = user.MaKhachHang,
                 NgayCheckIn = DateTime.Now,
                 CreatedDate = DateTime.Now,
                 MaCheckInKhacHang = item.Ma,

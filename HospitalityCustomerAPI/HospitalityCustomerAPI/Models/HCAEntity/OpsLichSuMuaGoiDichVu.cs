@@ -34,4 +34,8 @@ public partial class OpsLichSuMuaGoiDichVu
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public DateTime? NgayKichHoat { get; set; }
+
+    public DateTime? NgayHetHan { get; set; }
 }
