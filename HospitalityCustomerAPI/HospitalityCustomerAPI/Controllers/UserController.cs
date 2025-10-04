@@ -260,10 +260,15 @@ namespace HospitalityCustomerAPI.Controllers
 
 
         [HttpPost("Checkin")]
-        [APIKeyCheck]
+        [TokenUserCheckHTTP]
         public async Task<ResponseModel> Checkin([FromForm] CheckinDto dto)
         {
             Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();
+            var user = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == objToken.userid);
+            if (user == null)
+            {
+                return new ResponseModelError("Khách hàng chưa login");
+            }
 
             TblDiemBanHang? diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
             if (diemBanHang == null)
@@ -283,7 +288,7 @@ namespace HospitalityCustomerAPI.Controllers
                 return new ResponseModelError("Gói dịch vụ không tồn tại");
             }
 
-            var khachHang = _userRepository.GetItemByKhachHang(dto.MaKhachHang);
+            var khachHang = _userRepository.GetItemByKhachHang(user.MaKhachHang.Value);
 
             if (khachHang == null)
             {
