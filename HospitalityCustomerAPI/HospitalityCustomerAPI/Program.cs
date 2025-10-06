@@ -6,6 +6,7 @@ using HospitalityCustomerAPI.Repository;
 using HospitalityCustomerAPI.Repository.IRepository;
 using HospitalityCustomerAPI.Services;
 using HospitalityCustomerAPI.Services.IServices;
+using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +42,9 @@ builder.Services.AddScoped<IPhuongXaRepository, PhuongXaRepository>();
 // ================== Add Services ==================
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.Configure<EspOptions>(builder.Configuration.GetSection("EspOptions"));
+builder.Services.AddTransient<IEspClient, EspClient>();
+
 
 builder.Services.AddHttpClient<INotificationService, NotificationService>();
 
