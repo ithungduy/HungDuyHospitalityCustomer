@@ -27,6 +27,8 @@ namespace HospitalityCustomerAPI.Controllers
         private readonly ILichSuMuaGoiDichVuRepository _lichSuMuaGoiDichVuRepository;
         private readonly IDiemBanHangPOSRepository _diemBanHangPOSRepository;
         private readonly ILichSuMuaGoiDichVuPOSRepository _lichSuMuaGoiDichVuPOSRepository;
+        private readonly IEspClient _espClient;
+        private readonly ILogger<UserController> _logger;
 
 
         public UserController(
@@ -38,7 +40,9 @@ namespace HospitalityCustomerAPI.Controllers
                ICheckInRepository checkInRepository,
                ILichSuMuaGoiDichVuRepository lichSuMuaGoiDichVuRepository,
                IDiemBanHangPOSRepository diemBanHangPOSRepository,
-               ILichSuMuaGoiDichVuPOSRepository lichSuMuaGoiDichVuPOSRepository
+               ILichSuMuaGoiDichVuPOSRepository lichSuMuaGoiDichVuPOSRepository,
+               IEspClient espClient,
+               ILogger<UserController> logger
            ) : base(context)
         {
             _userRepository = userRepository;
@@ -50,6 +54,8 @@ namespace HospitalityCustomerAPI.Controllers
             _lichSuMuaGoiDichVuRepository = lichSuMuaGoiDichVuRepository;
             _diemBanHangPOSRepository = diemBanHangPOSRepository;
             _lichSuMuaGoiDichVuPOSRepository = lichSuMuaGoiDichVuPOSRepository;
+            _espClient = espClient;
+            _logger = logger;
         }
 
         [HttpPost("Register")]
@@ -265,38 +271,19 @@ namespace HospitalityCustomerAPI.Controllers
         {
             Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();
             var user = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == objToken.userid);
-            if (user == null)
-            {
-                return new ResponseModelError("Khách hàng chưa login");
-            }
+            if (user == null) return new ResponseModelError("Khách hàng chưa login");
 
-            TblDiemBanHang? diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
-            if (diemBanHang == null)
-            {
-                return new ResponseModelError("Điểm bán hàng không tồn tại");
-            }
+            var diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
+            if (diemBanHang == null) return new ResponseModelError("Điểm bán hàng không tồn tại");
 
             var lichSuGoiDV = _lichSuMuaGoiDichVuPOSRepository.GetById(dto.MaLichSuGoiDichVu);
-            if (lichSuGoiDV == null)
-            {
-                return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
-            }
+            if (lichSuGoiDV == null) return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
 
             var goiDichVu = _lichSuMuaGoiDichVuRepository.GetById(dto.MaLichSuGoiDichVu);
-            if (goiDichVu == null)
-            {
-                return new ResponseModelError("Gói dịch vụ không tồn tại");
-            }
-            if (goiDichVu != null && goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
-            {
+            if (goiDichVu == null) return new ResponseModelError("Gói dịch vụ không tồn tại");
+            if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
                 return new ResponseModelError("Gói dịch vụ hết hạn");
-            }
-            //var khachHang = _userRepository.GetItemByKhachHang(user.MaKhachHang.Value);
 
-            //if (khachHang == null)
-            //{
-            //    return new ResponseModelError("Khách hàng không tồn tại");
-            //}
             var item = new HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
@@ -305,7 +292,7 @@ namespace HospitalityCustomerAPI.Controllers
                 MaLichSuGoiDichVu = goiDichVu.Ma,
                 MaKhachHang = user.MaKhachHang,
                 NgayCheckIn = DateTime.Now,
-                CreatedDate = DateTime.Now,                
+                CreatedDate = DateTime.Now,
             };
 
             var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
@@ -326,24 +313,36 @@ namespace HospitalityCustomerAPI.Controllers
             try
             {
                 _context.Add(item);
-
                 goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
                 goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
                 _context.Update(goiDichVu);
-
                 await _context.SaveChangesAsync();
                 await tran1.CommitAsync();
 
                 _posdbcontext.Add(itemPos);
-
                 lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
                 lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanDaSuDung ?? 0);
                 _posdbcontext.Update(lichSuGoiDV);
-
                 await _posdbcontext.SaveChangesAsync();
                 await tran2.CommitAsync();
 
-                return new ResponseModelSuccess("Đã check in");
+                // ===== FIRE-AND-FORGET mở cửa sau khi checkin thành công =====
+                var gpioAlias = string.IsNullOrWhiteSpace(dto.GpioAlias) ? "default" : dto.GpioAlias!.Trim();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var ok = await _espClient.TriggerByAliasAsync(gpioAlias);
+                        if (!ok) _logger.LogWarning("ESP trigger FAILED (async) alias={alias} checkin={Ma}", gpioAlias, item.Ma);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "ESP trigger EXCEPTION (async) alias={alias} checkin={Ma}", gpioAlias, item.Ma);
+                    }
+                });
+
+                // Có thể trả kèm gợi ý alias để client biết retry (nếu cần)
+                return new ResponseModelSuccess("Đã check in thành công", new { CheckinId = item.Ma, DoorAlias = gpioAlias });
             }
             catch (Exception ex)
             {
@@ -352,6 +351,20 @@ namespace HospitalityCustomerAPI.Controllers
                 return new ResponseModelError($"Checkin thất bại: {ex.Message}");
             }
         }
+
+        [HttpPost("OpenDoor")]
+        [TokenUserCheckHTTP] // hoặc APIKeyCheck tùy bạn muốn bảo vệ mức nào
+        public async Task<ResponseModel> OpenDoor([FromForm] string? gpioAlias = null)
+        {
+            var alias = string.IsNullOrWhiteSpace(gpioAlias) ? "default" : gpioAlias!.Trim();
+
+            var ok = await _espClient.TriggerByAliasAsync(alias);
+            if (!ok)
+                return new ResponseModelError("Không thể mở cửa. Vui lòng thử lại hoặc liên hệ quầy.");
+
+            return new ResponseModelSuccess("Đã kích hoạt mở cửa", new { DoorAlias = alias });
+        }
+
 
         [HttpPost("GetListGoiDichVuConSuDung")]
         [TokenUserCheckHTTP]

@@ -59,5 +59,6 @@
         public string MaDiemBanHang { get; set; }
         public Guid MaLichSuGoiDichVu { get; set; }
         public Guid MaKhachHang { get; set; }
+        public string? GpioAlias { get; set; } // ví dụ: "gym_door_2"
     }
 }
