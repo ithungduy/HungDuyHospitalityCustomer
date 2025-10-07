@@ -344,6 +344,38 @@ namespace HospitalityCustomerAPI.Controllers
                     }
                 });
 
+
+                // ===== Sau khi có Ip và Pins thì bật comment này lên =====
+                //_ = Task.Run(async () =>
+                //{
+                //    try
+                //    {
+                //        var baseUrl = string.IsNullOrWhiteSpace(diemBanHang.EspIpAddress)
+                //            ? "http://172.16.10.169" // fallback cuối (nếu muốn)
+                //            : (diemBanHang.EspIpAddress!.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                //                ? diemBanHang.EspIpAddress!
+                //                : $"http://{diemBanHang.EspIpAddress}");
+
+                //        var pin = diemBanHang.EspPinName; // ví dụ "gym_door_2PULSE"
+
+                //        if (!string.IsNullOrWhiteSpace(baseUrl) && !string.IsNullOrWhiteSpace(pin))
+                //        {
+                //            var ok = await _espClient.TriggerWithEndpointAsync(baseUrl, pin!);
+                //            if (!ok)
+                //                _logger.LogWarning("ESP trigger FAILED (async) ip={ip} pin={pin} checkin={Ma}",
+                //                    baseUrl, pin, item.Ma);
+                //        }
+                //        else
+                //        {
+                //            _logger.LogWarning("ESP cấu hình trống cho DiemBanHang={Ma}", diemBanHang.Ma);
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        _logger.LogError(ex, "ESP trigger exception (async) DiemBanHang={Ma}", diemBanHang.Ma);
+                //    }
+                //});
+
                 // Có thể trả kèm gợi ý alias để client biết retry (nếu cần)
                 return new ResponseModelSuccess("Đã check in thành công", new { CheckinId = item.Ma, DoorAlias = gpioAlias });
             }
