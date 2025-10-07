@@ -27,6 +27,8 @@ public partial class OpsLichSuMuaGoiDichVu
 
     public Guid? NguoiKichHoat { get; set; }
 
+    public DateTime? NgayHetHan { get; set; }
+
     public Guid? UserCreated { get; set; }
 
     public DateTime? CreatedDate { get; set; }

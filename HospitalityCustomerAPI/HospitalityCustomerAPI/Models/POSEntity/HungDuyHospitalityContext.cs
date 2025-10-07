@@ -107,6 +107,7 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.NgayHetHan).HasColumnType("datetime");
             entity.Property(e => e.NgayKichHoat).HasColumnType("datetime");
         });
 
@@ -120,8 +121,14 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.ControlPin)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.IpOpenDoor)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.Ten).HasMaxLength(200);
         });

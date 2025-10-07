@@ -44,4 +44,8 @@ public partial class OpsCheckIn
     public DateTime? DeletedDate { get; set; }
 
     public Guid? MaCheckInKhacHang { get; set; }
+
+    public Guid? MaChiNhanhNhanVien { get; set; }
+
+    public Guid? MaBoPhanNhanVien { get; set; }
 }

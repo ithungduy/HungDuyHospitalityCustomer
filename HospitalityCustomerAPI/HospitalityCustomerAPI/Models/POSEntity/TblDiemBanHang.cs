@@ -32,4 +32,8 @@ public partial class TblDiemBanHang
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public string? IpOpenDoor { get; set; }
+
+    public string? ControlPin { get; set; }
 }
