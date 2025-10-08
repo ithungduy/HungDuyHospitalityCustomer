@@ -62,7 +62,7 @@ namespace HospitalityCustomerAPI.Controllers
 
         [HttpPost("Register")]
         [APIKeyCheck]
-        public ResponseModel Register([FromBody] UserRegisterDto dto, [FromForm] bool isDev = false)
+        public ResponseModel Register([FromForm] UserRegisterDto dto, [FromForm] bool isDev = false)
         {
             // 0) Chuẩn hóa SĐT & kiểm tra đã tồn tại
             AttachCountryCodeForPhoneNumber(dto.Username, out var username);
