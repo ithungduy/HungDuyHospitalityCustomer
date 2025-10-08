@@ -23,7 +23,7 @@ namespace HospitalityCustomerAPI.Repositories
             List<LichSuGoiDichVuDTO> goiDichVu = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
                                                   join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
                                                   where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-                                                  && (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
+                                                  //&& (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
                                                   select new LichSuGoiDichVuDTO
                                                   {
                                                       MaLichSuGoiDichVu = t.Ma,
@@ -39,7 +39,7 @@ namespace HospitalityCustomerAPI.Repositories
                                                          join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
                                                          join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
                                                          where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-                                                         && (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
+                                                         //&& (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
                                                          select new LichSuGoiDichVuDTO
                                                          {
                                                              MaLichSuGoiDichVu = gdv.Ma,
