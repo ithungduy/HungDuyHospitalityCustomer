@@ -17,6 +17,8 @@ public partial class TblDiemBanHang
 
     public Guid? MaKho { get; set; }
 
+    public int? SoLanIn { get; set; }
+
     public bool? Status { get; set; }
 
     public Guid? UserCreated { get; set; }

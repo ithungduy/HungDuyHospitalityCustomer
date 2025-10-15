@@ -109,6 +109,7 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.NgayHetHan).HasColumnType("datetime");
             entity.Property(e => e.NgayKichHoat).HasColumnType("datetime");
+            entity.Property(e => e.NhanVienPt).HasColumnName("NhanVienPT");
         });
 
         modelBuilder.Entity<TblDiemBanHang>(entity =>
@@ -162,6 +163,7 @@ public partial class HungDuyHospitalityContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.Ten).HasMaxLength(50);
+            entity.Property(e => e.TienSuBenhLy).HasMaxLength(1000);
         });
 
         OnModelCreatingPartial(modelBuilder);

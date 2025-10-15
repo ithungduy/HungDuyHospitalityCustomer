@@ -209,6 +209,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.SoNha).HasMaxLength(500);
+            entity.Property(e => e.TienSuBenhLy).HasMaxLength(1000);
             entity.Property(e => e.Token)
                 .HasMaxLength(200)
                 .IsUnicode(false);

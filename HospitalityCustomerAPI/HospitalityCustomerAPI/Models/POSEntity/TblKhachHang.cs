@@ -41,6 +41,8 @@ public partial class TblKhachHang
 
     public string? Msnv { get; set; }
 
+    public string? TienSuBenhLy { get; set; }
+
     public Guid? UserCreated { get; set; }
 
     public DateTime? CreatedDate { get; set; }

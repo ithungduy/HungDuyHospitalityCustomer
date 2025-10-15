@@ -37,6 +37,8 @@
         public bool Status { get; set; }
         public string? HoChieu { get; set; }
 
+        public string? TienSuBenhLy { get; set; }
+
     }
 
     public class ResetPasswordDto

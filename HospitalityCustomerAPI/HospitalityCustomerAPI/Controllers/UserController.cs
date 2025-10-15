@@ -211,7 +211,6 @@ namespace HospitalityCustomerAPI.Controllers
 
             entity.HinhAnh = dto.HinhAnh;
             entity.FullName = dto.HoTen;
-           
             entity.NgaySinh = dtpNgaySinh;
             entity.GioiTinh = dto.GioiTinh;
             entity.MaQuocGia = dto.MaQuocGia;
@@ -222,8 +221,31 @@ namespace HospitalityCustomerAPI.Controllers
             entity.MaDanToc = dto.MaDanToc;
             entity.HoChieu = dto.HoChieu;
             entity.Status = dto.Status;
+            entity.TienSuBenhLy = dto.TienSuBenhLy;
 
-            var result = _userRepository.Update(entity, objToken!.userid);
+            int result = _userRepository.Update(entity, objToken!.userid);
+
+            if (result > 0)
+            {
+                // Đồng bộ POS (TblKhachHang)
+                string sodt = username.StartsWith("84") ? username.Replace("84", "0") : username;
+                TblKhachHang? khachHang = _posdbcontext.TblKhachHang
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.Ma == entity.MaKhachHang && !(x.Deleted ?? false));
+
+                if (khachHang != null)
+                {
+                    khachHang.Ten = (dto.HoTen + "").ToUpper();
+                    khachHang.GioiTinh = dto.GioiTinh;
+                    khachHang.DiaChi = dto.SoNha;
+                    khachHang.NgaySinh = dtpNgaySinh;
+                    khachHang.TienSuBenhLy = dto.TienSuBenhLy;
+
+                    _posdbcontext.Update(khachHang);
+                    _posdbcontext.SaveChanges();
+                }
+            }
+
             return result.isSuccess() ? ResponseUpdateSuccessfully : ResponseUpdateFailure;
         }
 

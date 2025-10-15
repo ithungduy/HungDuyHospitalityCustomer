@@ -66,4 +66,6 @@ public partial class SysUser
     public string? HoChieu { get; set; }
 
     public Guid? MaDanToc { get; set; }
+
+    public string? TienSuBenhLy { get; set; }
 }
