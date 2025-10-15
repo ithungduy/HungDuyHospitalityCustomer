@@ -21,6 +21,8 @@ public partial class OpsLichSuMuaGoiDichVu
 
     public decimal? DonGia { get; set; }
 
+    public Guid? NhanVienPt { get; set; }
+
     public Guid? UserCreated { get; set; }
 
     public DateTime? CreatedDate { get; set; }

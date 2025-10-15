@@ -128,6 +128,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.NgayHetHan).HasColumnType("datetime");
             entity.Property(e => e.NgayKichHoat).HasColumnType("datetime");
+            entity.Property(e => e.NhanVienPt).HasColumnName("NhanVienPT");
         });
 
         modelBuilder.Entity<SysAppVersion>(entity =>

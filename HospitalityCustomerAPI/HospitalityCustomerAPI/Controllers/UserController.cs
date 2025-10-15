@@ -317,7 +317,9 @@ namespace HospitalityCustomerAPI.Controllers
                 MaLichSuGoiDichVu = goiDichVu.Ma,
                 MaKhachHang = user.MaKhachHang,
                 NgayCheckIn = DateTime.Now,
+                MaNhanVienPhuTrach = goiDichVu.NhanVienPt,
                 CreatedDate = DateTime.Now,
+
             };
 
             var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
@@ -330,6 +332,7 @@ namespace HospitalityCustomerAPI.Controllers
                 NgayCheckIn = DateTime.Now,
                 CreatedDate = DateTime.Now,
                 MaCheckInKhacHang = item.Ma,
+                MaNhanVienPhuTrach = goiDichVu.NhanVienPt,
             };
 
             await using var tran1 = await _context.Database.BeginTransactionAsync();
