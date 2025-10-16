@@ -513,7 +513,10 @@ namespace HospitalityCustomerAPI.Controllers
                 MaKhachHang = khachHang?.Ma ?? Guid.Empty,
                 Ten = khachHang?.Ten ?? "",
                 SoDienThoai = khachHang?.SoDienThoai ?? "",
-                DiaChi = khachHang?.DiaChi ?? ""
+                DiaChi = khachHang?.DiaChi ?? "",
+                TienSuBenhLy = sysUser?.TienSuBenhLy ?? "",
+                DongYTuanThuNoiQuy = sysUser?.DongYtuanThuNoiQuy == true ? "1" : "0",
+                ChoPhepSuDungThongTinCaNhan = sysUser?.ChoPhepSuDungThongTinCaNhan == true ? "1" : "0",
             };
 
             return new ResponseModelSuccess("Thành công", dto);
