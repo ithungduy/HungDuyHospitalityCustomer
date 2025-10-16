@@ -151,6 +151,7 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.DiaChi).HasMaxLength(200);
+            entity.Property(e => e.DongYtuanThuNoiQuy).HasColumnName("DongYTuanThuNoiQuy");
             entity.Property(e => e.HanMucCongNo).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.IsCompany).HasColumnName("isCompany");
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");

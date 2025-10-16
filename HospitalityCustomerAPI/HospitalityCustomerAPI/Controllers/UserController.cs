@@ -184,8 +184,6 @@ namespace HospitalityCustomerAPI.Controllers
             return result.isSuccess() ? ResponseRegisterSuccessfully : ResponseAddFailure;
         }
 
-
-
         [HttpPost("Update")]
         [TokenUserCheckHTTP]
         public ResponseModel Update([FromForm] UserUpdateDto dto)
@@ -222,6 +220,8 @@ namespace HospitalityCustomerAPI.Controllers
             entity.HoChieu = dto.HoChieu;
             entity.Status = dto.Status;
             entity.TienSuBenhLy = dto.TienSuBenhLy;
+            entity.DongYtuanThuNoiQuy = dto.DongYTuanThuNoiQuy == "1";
+            entity.ChoPhepSuDungThongTinCaNhan = dto.ChoPhepSuDungThongTinCaNhan == "1";
 
             int result = _userRepository.Update(entity, objToken!.userid);
 
@@ -240,6 +240,8 @@ namespace HospitalityCustomerAPI.Controllers
                     khachHang.DiaChi = dto.SoNha;
                     khachHang.NgaySinh = dtpNgaySinh;
                     khachHang.TienSuBenhLy = dto.TienSuBenhLy;
+                    khachHang.DongYtuanThuNoiQuy = dto.DongYTuanThuNoiQuy == "1";
+                    khachHang.ChoPhepSuDungThongTinCaNhan = dto.ChoPhepSuDungThongTinCaNhan == "1";
 
                     _posdbcontext.Update(khachHang);
                     _posdbcontext.SaveChanges();

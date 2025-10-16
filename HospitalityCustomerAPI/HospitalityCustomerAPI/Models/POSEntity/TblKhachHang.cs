@@ -43,6 +43,10 @@ public partial class TblKhachHang
 
     public string? TienSuBenhLy { get; set; }
 
+    public bool? DongYtuanThuNoiQuy { get; set; }
+
+    public bool? ChoPhepSuDungThongTinCaNhan { get; set; }
+
     public Guid? UserCreated { get; set; }
 
     public DateTime? CreatedDate { get; set; }

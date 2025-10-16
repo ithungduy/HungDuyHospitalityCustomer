@@ -36,9 +36,9 @@
         public Guid MaDanToc { get; set; }
         public bool Status { get; set; }
         public string? HoChieu { get; set; }
-
         public string? TienSuBenhLy { get; set; }
-
+        public string? DongYTuanThuNoiQuy { get; set; }
+        public string? ChoPhepSuDungThongTinCaNhan { get; set; }
     }
 
     public class ResetPasswordDto

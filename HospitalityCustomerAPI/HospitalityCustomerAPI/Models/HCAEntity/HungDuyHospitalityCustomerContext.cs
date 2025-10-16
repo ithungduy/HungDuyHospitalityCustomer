@@ -195,6 +195,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.DongYtuanThuNoiQuy).HasColumnName("DongYTuanThuNoiQuy");
             entity.Property(e => e.Fcm)
                 .HasMaxLength(200)
                 .HasColumnName("FCM");

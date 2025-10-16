@@ -68,4 +68,8 @@ public partial class SysUser
     public Guid? MaDanToc { get; set; }
 
     public string? TienSuBenhLy { get; set; }
+
+    public bool? DongYtuanThuNoiQuy { get; set; }
+
+    public bool? ChoPhepSuDungThongTinCaNhan { get; set; }
 }
