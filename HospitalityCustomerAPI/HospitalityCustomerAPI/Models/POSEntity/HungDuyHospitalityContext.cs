@@ -25,6 +25,8 @@ public partial class HungDuyHospitalityContext : DbContext
 
     public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
 
+    public virtual DbSet<OpsOpenDoor> OpsOpenDoor { get; set; }
+
     public virtual DbSet<TblDiemBanHang> TblDiemBanHang { get; set; }
 
     public virtual DbSet<TblKhachHang> TblKhachHang { get; set; }
@@ -110,6 +112,16 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.NgayHetHan).HasColumnType("datetime");
             entity.Property(e => e.NgayKichHoat).HasColumnType("datetime");
             entity.Property(e => e.NhanVienPt).HasColumnName("NhanVienPT");
+        });
+
+        modelBuilder.Entity<OpsOpenDoor>(entity =>
+        {
+            entity.HasKey(e => e.Ma).HasName("PK_ops_MoCua");
+
+            entity.ToTable("ops_OpenDoor");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<TblDiemBanHang>(entity =>

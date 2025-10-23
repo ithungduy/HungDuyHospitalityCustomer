@@ -416,15 +416,59 @@ namespace HospitalityCustomerAPI.Controllers
 
         [HttpPost("OpenDoor")]
         [TokenUserCheckHTTP] // hoặc APIKeyCheck tùy bạn muốn bảo vệ mức nào
-        public async Task<ResponseModel> OpenDoor([FromForm] string? gpioAlias = null)
+        public async Task<ResponseModel> OpenDoor([FromForm] string MaDiemBanHang)
         {
-            var alias = string.IsNullOrWhiteSpace(gpioAlias) ? "default" : gpioAlias!.Trim();
+            try
+            {
+                Guid maDiemBanHang = MaDiemBanHang.GetGuid();
+                var diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
+                if (diemBanHang == null) return new ResponseModelError("Điểm bán hàng không tồn tại");
 
-            var ok = await _espClient.TriggerByAliasAsync(alias);
-            if (!ok)
-                return new ResponseModelError("Không thể mở cửa. Vui lòng thử lại hoặc liên hệ quầy.");
+                var user = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == objToken.userid);
+                if (user == null) return new ResponseModelError("Khách hàng chưa login");
 
-            return new ResponseModelSuccess("Đã kích hoạt mở cửa", new { DoorAlias = alias });
+                var baseUrl = string.IsNullOrWhiteSpace(diemBanHang.IpOpenDoor)
+                          ? "http://172.16.10.169" // fallback cuối (nếu muốn)
+                          : (diemBanHang.IpOpenDoor!.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                              ? diemBanHang.IpOpenDoor!
+                              : $"http://{diemBanHang.IpOpenDoor}");
+
+                var pin = diemBanHang.ControlPin; // ví dụ "gym_door_2PULSE"
+
+                if (!string.IsNullOrWhiteSpace(baseUrl) && !string.IsNullOrWhiteSpace(pin))
+                {
+                    var ok = await _espClient.TriggerWithEndpointAsync(baseUrl, pin!);
+                    if (!ok)
+                    {
+                        _logger.LogWarning("ESP trigger FAILED (async) ip={ip} pin={pin} checkin={Ma}",
+                          baseUrl, pin, "");
+
+                        return new ResponseModelError("Liên hệ quầy tiếp tân");
+                    }          
+                    else
+                    {
+                        var item = new  OpsOpenDoor
+                        {         
+                            MaDiemBanHang = diemBanHang.Ma,                           
+                            MaKhachHang = user.MaKhachHang,                          
+                            CreatedDate = DateTime.Now,
+                        };
+                        _posdbcontext.Add(item);
+                        await _posdbcontext.SaveChangesAsync();
+                        return new ResponseModelSuccess("Đã mở cửa");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("ESP cấu hình trống cho DiemBanHang={Ma}", diemBanHang.Ma);
+                    return new ResponseModelError($"ESP cấu hình trống cho DiemBanHang={diemBanHang.Ten}");
+                }                   
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModelError(ex.Message);
+            }
+           
         }
 
 
