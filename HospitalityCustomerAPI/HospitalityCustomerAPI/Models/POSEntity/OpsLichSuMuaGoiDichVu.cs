@@ -9,6 +9,8 @@ public partial class OpsLichSuMuaGoiDichVu
 
     public Guid? MaKhachHang { get; set; }
 
+    public Guid? MaPhongBan { get; set; }
+
     public Guid? MaHoaDon { get; set; }
 
     public Guid? MaHangHoa { get; set; }

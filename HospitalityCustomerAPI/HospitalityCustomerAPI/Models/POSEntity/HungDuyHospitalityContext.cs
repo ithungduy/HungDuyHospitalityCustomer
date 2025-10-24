@@ -31,6 +31,8 @@ public partial class HungDuyHospitalityContext : DbContext
 
     public virtual DbSet<TblKhachHang> TblKhachHang { get; set; }
 
+    public virtual DbSet<TblPhongBan> TblPhongBan { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:POS");
 
@@ -177,6 +179,23 @@ public partial class HungDuyHospitalityContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Ten).HasMaxLength(50);
             entity.Property(e => e.TienSuBenhLy).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<TblPhongBan>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("tbl_PhongBan");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.MoTa).HasMaxLength(500);
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(500);
         });
 
         OnModelCreatingPartial(modelBuilder);

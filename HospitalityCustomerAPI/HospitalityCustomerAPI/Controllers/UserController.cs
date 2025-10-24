@@ -299,15 +299,28 @@ namespace HospitalityCustomerAPI.Controllers
             Guid maDiemBanHang = dto.MaDiemBanHang.GetGuid();
             var user = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == objToken.userid);
             if (user == null) return new ResponseModelError("Khách hàng chưa login");
+            //var diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
 
-            var diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
+            TblDiemBanHang? diemBanHang = _posdbcontext.TblDiemBanHang.AsNoTracking().FirstOrDefault(x => x.Ma == maDiemBanHang && !(x.Deleted ?? false));
+
             if (diemBanHang == null) return new ResponseModelError("Điểm bán hàng không tồn tại");
+            TblPhongBan? boPhan = _posdbcontext.TblPhongBan.AsNoTracking().FirstOrDefault(x => x.Ma == diemBanHang.MaPhongBan && !(x.Deleted ?? false));
+            if (boPhan == null)
+            {
+                return new ResponseModelError("Bộ phận của điểm bán hàng không tồn tại");
+            }
 
             var lichSuGoiDV = _lichSuMuaGoiDichVuPOSRepository.GetById(dto.MaLichSuGoiDichVu);
             if (lichSuGoiDV == null) return new ResponseModelError("Gói dịch vụ không tồn tại trong data");
 
             var goiDichVu = _lichSuMuaGoiDichVuRepository.GetById(dto.MaLichSuGoiDichVu);
             if (goiDichVu == null) return new ResponseModelError("Gói dịch vụ không tồn tại");
+
+            if (lichSuGoiDV.MaPhongBan != diemBanHang.MaPhongBan)
+            {
+                return new ResponseModelError("Gói dịch vụ không áp dụng cho bộ phận " + boPhan.Ten);
+            }            
+
             if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
                 return new ResponseModelError("Gói dịch vụ hết hạn");
 
@@ -321,7 +334,6 @@ namespace HospitalityCustomerAPI.Controllers
                 NgayCheckIn = DateTime.Now,
                 MaNhanVienPhuTrach = goiDichVu.NhanVienPt,
                 CreatedDate = DateTime.Now,
-
             };
 
             var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
@@ -424,8 +436,37 @@ namespace HospitalityCustomerAPI.Controllers
                 var diemBanHang = _diemBanHangPOSRepository.GetById(maDiemBanHang);
                 if (diemBanHang == null) return new ResponseModelError("Điểm bán hàng không tồn tại");
 
+                if ((diemBanHang.IpOpenDoor ?? "") == "")
+                {
+                    return new ResponseModelError("Điểm bán hàng chưa thiết lập chế độ mở cửa");
+                }
+                TblPhongBan? boPhan = await _posdbcontext.TblPhongBan.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == diemBanHang.MaPhongBan && !(x.Deleted ?? false));
+                if (boPhan == null)
+                {
+                    return new ResponseModelError("Bộ phận của điểm bán hàng không tồn tại");
+                }
                 var user = await _context.SysUser.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == objToken.userid);
                 if (user == null) return new ResponseModelError("Khách hàng chưa login");
+                // tìm gói dv của khách hàng trong bộ phận này
+
+                var goiDichVu = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == user.MaKhachHang && x.MaPhongBan == diemBanHang.MaPhongBan && !(x.Deleted ?? false));
+                if (goiDichVu == null)
+                {
+                    return new ResponseModelError("Khách hàng chưa mua gói dịch vụ " + boPhan.Ten);
+                }
+
+                if (!(goiDichVu.DaKichHoat ?? false))
+                {
+                    return new ResponseModelError("Khách hàng có gói dịch vụ nhưng chưa kích hoạt");
+                }
+
+                if ((goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0) <= 0)
+                {
+                    return new ResponseModelError("Khách hàng có gói dịch vụ đã hết số lần sử dụng");
+                }
+
+                if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
+                    return new ResponseModelError("Gói dịch vụ hết hạn");           
 
                 var baseUrl = string.IsNullOrWhiteSpace(diemBanHang.IpOpenDoor)
                           ? "http://172.16.10.169" // fallback cuối (nếu muốn)
