@@ -1,4 +1,5 @@
-﻿using HospitalityCustomerAPI.DTO.LichSuMuaGoiDichVu;
+﻿using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.DTO.LichSuMuaGoiDichVu;
 using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace HospitalityCustomerAPI.Repositories
                                                       SoLan = t.SoLanSuDung ?? 0,
                                                       SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
                                                       ConLai = t.SoLanConLai ?? 0,
+                                                      MaBoPhan = t.MaPhongBan ?? Utility.defaultUID,
                                                   }).ToList();
 
             List<LichSuGoiDichVuDTO> goiDichVuGiaDinh = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
@@ -49,12 +51,14 @@ namespace HospitalityCustomerAPI.Repositories
                                                              SoLan = gdv.SoLanSuDung ?? 0,
                                                              SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
                                                              ConLai = gdv.SoLanConLai ?? 0,
+                                                             MaBoPhan = gdv.MaPhongBan ?? Utility.defaultUID,
                                                          }).ToList();
 
             goiDichVu.AddRange(goiDichVuGiaDinh);
 
             return goiDichVu;
-        }
+        }       
+
 
         public List<LichSuGoiDichVuDTO> GetListGoiDichVuConSuDung(Guid MaKhachHang)
         {

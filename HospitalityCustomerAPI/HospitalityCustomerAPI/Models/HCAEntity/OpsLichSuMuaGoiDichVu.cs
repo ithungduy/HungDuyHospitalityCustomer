@@ -7,6 +7,8 @@ public partial class OpsLichSuMuaGoiDichVu
 {
     public Guid Ma { get; set; }
 
+    public Guid? MaPhongBan { get; set; }
+
     public Guid? MaKhachHang { get; set; }
 
     public Guid? MaHoaDon { get; set; }

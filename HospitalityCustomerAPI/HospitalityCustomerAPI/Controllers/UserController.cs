@@ -531,6 +531,23 @@ namespace HospitalityCustomerAPI.Controllers
             return new ResponseModelSuccess("", listData);
         }
 
+        [HttpPost("GetListGoiDichVuConSuDung")]
+        [TokenUserCheckHTTP]
+        public ResponseModel getBoPhanTheThao()
+        {
+            var listData = (from t in _posdbcontext.TblPhongBan.AsNoTracking()
+                            join n in _posdbcontext.TblNhomBoPhan.AsNoTracking() on t.MaNhomBoPhan equals n.Ma
+                            where !(t.Deleted ?? false) && (n.Ma == (int)NhomBoPhan.TheThao)
+                            select new
+                            {
+                                ma = t.Ma,
+                                code = t.Code,
+                                ten = t.Ten,
+                            }).ToList();
+
+            return new ResponseModelSuccess("", listData);
+        }       
+
         [HttpPost("GetListGoiDichVu")]
         [TokenUserCheckHTTP]
         public ResponseModel GetListGoiDichVu(string MaKhachHang)

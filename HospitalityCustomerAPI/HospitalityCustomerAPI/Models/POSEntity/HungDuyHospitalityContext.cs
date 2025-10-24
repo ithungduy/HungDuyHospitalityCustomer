@@ -31,6 +31,8 @@ public partial class HungDuyHospitalityContext : DbContext
 
     public virtual DbSet<TblKhachHang> TblKhachHang { get; set; }
 
+    public virtual DbSet<TblNhomBoPhan> TblNhomBoPhan { get; set; }
+
     public virtual DbSet<TblPhongBan> TblPhongBan { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -179,6 +181,18 @@ public partial class HungDuyHospitalityContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Ten).HasMaxLength(50);
             entity.Property(e => e.TienSuBenhLy).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<TblNhomBoPhan>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("tbl_NhomBoPhan");
+
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.Ten).HasMaxLength(100);
         });
 
         modelBuilder.Entity<TblPhongBan>(entity =>

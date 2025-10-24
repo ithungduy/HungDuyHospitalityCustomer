@@ -3,23 +3,11 @@ using System.Collections.Generic;
 
 namespace HospitalityCustomerAPI.Models.POSEntity;
 
-public partial class TblPhongBan
+public partial class TblNhomBoPhan
 {
-    public Guid Ma { get; set; }
-
-    public Guid? MaChiNhanh { get; set; }
-
-    public string? Code { get; set; }
+    public int Ma { get; set; }
 
     public string? Ten { get; set; }
-
-    public string? MoTa { get; set; }
-
-    public Guid? MaBan { get; set; }
-
-    public bool? CoSoQuy { get; set; }
-
-    public bool? Ban { get; set; }
 
     public bool? Status { get; set; }
 
@@ -36,8 +24,4 @@ public partial class TblPhongBan
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
-
-    public int? MaNganhVoucher { get; set; }
-
-    public int? MaNhomBoPhan { get; set; }
 }

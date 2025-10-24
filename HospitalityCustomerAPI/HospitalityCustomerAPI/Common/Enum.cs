@@ -3,6 +3,11 @@ using System.ComponentModel;
 
 namespace HospitalityCustomerAPI.Common
 {
+    public enum NhomBoPhan
+    {
+        TheThao = 1,  
+    }
+
     /// <summary>
     /// Loại thông báo
     /// </summary>
