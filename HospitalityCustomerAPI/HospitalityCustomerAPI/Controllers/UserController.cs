@@ -531,7 +531,7 @@ namespace HospitalityCustomerAPI.Controllers
             return new ResponseModelSuccess("", listData);
         }
 
-        [HttpPost("GetListGoiDichVuConSuDung")]
+        [HttpPost("getBoPhanTheThao")]
         [TokenUserCheckHTTP]
         public ResponseModel getBoPhanTheThao()
         {
