@@ -532,7 +532,7 @@ namespace HospitalityCustomerAPI.Controllers
         }
 
         [HttpPost("getBoPhanTheThao")]
-        [TokenUserCheckHTTP]
+        [APIKeyCheck]
         public ResponseModel getBoPhanTheThao()
         {
             var listData = (from t in _posdbcontext.TblPhongBan.AsNoTracking()
