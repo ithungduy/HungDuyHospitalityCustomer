@@ -450,24 +450,39 @@ namespace HospitalityCustomerAPI.Controllers
                 // tìm gói dv của khách hàng trong bộ phận này
 
                 var goiDichVu = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == user.MaKhachHang && x.MaPhongBan == diemBanHang.MaPhongBan && !(x.Deleted ?? false));
-                if (goiDichVu == null)
+                var goiGiaDinhs = await (from t in _posdbcontext.OpsGoiDichVuGiaDinh.AsNoTracking().Where(x => x.MaKhachHang == user.MaKhachHang && !(x.Deleted ?? false))
+                                         join g in _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals g.Ma
+                                         where g.MaPhongBan == diemBanHang.MaPhongBan && !(g.Deleted ?? false)
+                                         select g).ToListAsync();
+
+                if (goiDichVu == null && goiGiaDinhs == null)
                 {
                     return new ResponseModelError("Khách hàng chưa mua gói dịch vụ " + boPhan.Ten);
                 }
 
-                if (!(goiDichVu.DaKichHoat ?? false))
+                if (goiDichVu != null && !(goiDichVu.DaKichHoat ?? false))
                 {
                     return new ResponseModelError("Khách hàng có gói dịch vụ nhưng chưa kích hoạt");
                 }
 
-                if ((goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0) <= 0)
+                if (goiDichVu != null && (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0) <= 0)
                 {
                     return new ResponseModelError("Khách hàng có gói dịch vụ đã hết số lần sử dụng");
                 }
 
-                if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
-                    return new ResponseModelError("Gói dịch vụ hết hạn");           
+                if (goiDichVu != null && goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
+                    return new ResponseModelError("Gói dịch vụ hết hạn");
 
+                bool hasUsableFamilyPackage = goiGiaDinhs.Any(x =>
+                                                (x.DaKichHoat ?? false) &&
+                                                ((x.SoLanSuDung ?? 0) - (x.SoLanDaSuDung ?? 0) > 0) &&
+                                                (!x.NgayHetHan.HasValue || x.NgayHetHan.Value.Date >= DateTime.Today) // chưa hết hạn
+                                            );
+
+                if (goiDichVu == null && goiGiaDinhs.Any() && !hasUsableFamilyPackage)
+                {
+                    return new ResponseModelError("Khách hàng có gói dịch vụ gia đình đã hết hạn/ hết số lần sử dụng/ chưa kích hoạt");
+                }
                 var baseUrl = string.IsNullOrWhiteSpace(diemBanHang.IpOpenDoor)
                           ? "http://172.16.10.169" // fallback cuối (nếu muốn)
                           : (diemBanHang.IpOpenDoor!.StartsWith("http", StringComparison.OrdinalIgnoreCase)

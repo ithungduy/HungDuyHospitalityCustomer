@@ -23,6 +23,8 @@ public partial class HungDuyHospitalityContext : DbContext
 
     public virtual DbSet<OpsCheckIn> OpsCheckIn { get; set; }
 
+    public virtual DbSet<OpsGoiDichVuGiaDinh> OpsGoiDichVuGiaDinh { get; set; }
+
     public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
 
     public virtual DbSet<OpsOpenDoor> OpsOpenDoor { get; set; }
@@ -100,6 +102,18 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
             entity.Property(e => e.NgayCheckIn).HasColumnType("datetime");
             entity.Property(e => e.TienPhuCap).HasColumnType("decimal(18, 0)");
+        });
+
+        modelBuilder.Entity<OpsGoiDichVuGiaDinh>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("ops_GoiDichVuGiaDinh");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<OpsLichSuMuaGoiDichVu>(entity =>
