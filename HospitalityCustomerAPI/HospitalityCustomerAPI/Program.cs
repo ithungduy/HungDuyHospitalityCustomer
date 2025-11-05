@@ -1,4 +1,5 @@
-﻿using HospitalityCustomerAPI.Models.HCAEntity;
+﻿using HospitalityCustomerAPI.Common;
+using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Models.POSEntity;
 using HospitalityCustomerAPI.Repositories;
 using HospitalityCustomerAPI.Repositories.IRepositories;
@@ -44,6 +45,10 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.Configure<EspOptions>(builder.Configuration.GetSection("EspOptions"));
 builder.Services.AddTransient<IEspClient, EspClient>();
+
+// OTP Notification Services
+builder.Services.AddHttpClient("ZaloOtpClient");
+builder.Services.AddScoped<IOtpNotificationService, ZaloOtpNotificationService>();
 
 
 builder.Services.AddHttpClient<INotificationService, NotificationService>();

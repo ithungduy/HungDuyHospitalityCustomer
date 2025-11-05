@@ -5,7 +5,6 @@ using HospitalityCustomerAPI.Models.HCAEntity;
 using HospitalityCustomerAPI.Repositories.IRepositories;
 using HospitalityCustomerAPI.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using static HospitalityCustomerAPI.DTO.User.DeviceDto;
 using static HospitalityCustomerAPI.DTO.User.OtpDto;
@@ -20,21 +19,40 @@ namespace HospitalityCustomerAPI.Controllers
         private static string appver = "1:1.0.0+3";
         private static string messIdSuccess = "";
 
+        private const string PASSCODEFA = "F1n@nc3@cc0nt1ng"; 
+        private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
+        //private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
+
         private readonly HungDuyHospitalityCustomerContext _hungDuyHospitalityCustomerContext;
         private readonly INotificationService _notificationService;
         private readonly IUserRepository _userRepository;
         private readonly ISmsOtpRepository _smsOtpRepository;
 
+        private readonly IOtpNotificationService _otpNotificationService;
+
         public AuthController(HungDuyHospitalityCustomerContext hungDuyHospitalityCustomerContext,
                         INotificationService notificationService,
-                        IUserRepository userRepository, ISmsOtpRepository smsOtpRepository
+                        IUserRepository userRepository,
+                        ISmsOtpRepository smsOtpRepository,
+                        IOtpNotificationService otpNotificationService
                 ) : base(hungDuyHospitalityCustomerContext)
         {
             _hungDuyHospitalityCustomerContext = hungDuyHospitalityCustomerContext;
             _notificationService = notificationService;
             _userRepository = userRepository;
             _smsOtpRepository = smsOtpRepository;
+            _otpNotificationService = otpNotificationService;
 
+        }
+
+        // --- THÊM HÀM HELPER TẠO KEY ---
+        /// <summary>
+        /// Tạo API Key động để gọi qua FA
+        /// </summary>
+        private string GenerateFAGatewayApiKey()
+        {
+            // Logic này phải khớp với [APIKeyCheckAttribute] bên FA
+            return Utility.GetSHA512(PASSCODEFA + DateTime.Now.ToString("yyyyMM"));
         }
 
         [HttpGet("Mess")]
@@ -117,8 +135,14 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 if (request.ForceRefresh == "1")
                 {
-                    if (_smsOtpRepository.UpdateOTP(phone) == ActionStatus.Success.toInt())
+                    // Logic update khi force
+                    var (plainOtp, updateStatus) = _smsOtpRepository.GenerateAndSaveNewOtp(phone);
+                    if (updateStatus == ActionStatus.Success.toInt() && plainOtp != null)
+                    {
+                        string finalApiKey = GenerateFAGatewayApiKey();
+                        _ = _otpNotificationService.SendOtpAsync(phone, plainOtp, finalApiKey, apiUrl);
                         return new ResponseModelSuccess("OTP đã được làm mới");
+                    }
                 }
 
                 if (!_smsOtpRepository.CheckOTPNeedToRenew(phone))
@@ -127,14 +151,26 @@ namespace HospitalityCustomerAPI.Controllers
                 if (_smsOtpRepository.CheckOTPLimit(phone))
                     return new ResponseModelError("Bạn đã vượt số lần nhận OTP tối đa của tháng!");
 
-                if (_smsOtpRepository.UpdateOTP(phone) == ActionStatus.Success.toInt())
+                // Logic update khi hết hạn
+                var (plainOtpUpdate, status) = _smsOtpRepository.GenerateAndSaveNewOtp(phone);
+                if (status == ActionStatus.Success.toInt() && plainOtpUpdate != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(phone, plainOtpUpdate, finalApiKey, apiUrl);
                     return new ResponseModelSuccess("OTP đã được tạo mới");
+                }
             }
             else
             {
-                if (_smsOtpRepository.AddOTP(phone) == ActionStatus.Success.toInt())
+                // Logic add mới
+                var (plainOtpAdd, status) = _smsOtpRepository.GenerateAndSaveOtp(phone);
+                if (status == ActionStatus.Success.toInt() && plainOtpAdd != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(phone, plainOtpAdd, finalApiKey, apiUrl);
                     return new ResponseModelSuccess("OTP đã được tạo");
-            }
+                }
+            }           
 
             return new ResponseModelError("Không thể xử lý OTP");
         }
@@ -166,8 +202,14 @@ namespace HospitalityCustomerAPI.Controllers
             {
                 if (request.ForceRefresh == "1")
                 {
-                    if (_smsOtpRepository.UpdateOTP(phone) == ActionStatus.Success.toInt())
+                    // Logic update khi force
+                    var (plainOtp, updateStatus) = _smsOtpRepository.GenerateAndSaveNewOtp(phone);
+                    if (updateStatus == ActionStatus.Success.toInt() && plainOtp != null)
+                    {
+                        string finalApiKey = GenerateFAGatewayApiKey();
+                        _ = _otpNotificationService.SendOtpAsync(phone, plainOtp, finalApiKey, apiUrl);
                         return new ResponseModelSuccess("OTP đã được làm mới");
+                    }
                 }
 
                 if (!_smsOtpRepository.CheckOTPNeedToRenew(phone))
@@ -176,14 +218,26 @@ namespace HospitalityCustomerAPI.Controllers
                 if (_smsOtpRepository.CheckOTPLimit(phone))
                     return new ResponseModelError("Bạn đã vượt số lần nhận mã OTP tối đa của tháng !!!");
 
-                if (_smsOtpRepository.UpdateOTP(phone) == ActionStatus.Success.toInt())
+                // Logic update khi hết hạn
+                var (plainOtpUpdate, status) = _smsOtpRepository.GenerateAndSaveNewOtp(phone);
+                if (status == ActionStatus.Success.toInt() && plainOtpUpdate != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(phone, plainOtpUpdate, finalApiKey, apiUrl);
                     return new ResponseModelSuccess("OTP đã được tạo mới");
+                }
             }
             else
             {
-                if (_smsOtpRepository.AddOTP(phone) == ActionStatus.Success.toInt())
+                // Logic add mới
+                var (plainOtpAdd, status) = _smsOtpRepository.GenerateAndSaveOtp(phone);
+                if (status == ActionStatus.Success.toInt() && plainOtpAdd != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(phone, plainOtpAdd, finalApiKey, apiUrl);
                     return new ResponseModelSuccess("OTP đã được tạo");
-            }
+                }
+            }           
 
             return new ResponseModelError("Không thể xử lý OTP");
         }

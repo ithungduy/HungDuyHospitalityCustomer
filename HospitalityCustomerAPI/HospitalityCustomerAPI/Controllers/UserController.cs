@@ -32,6 +32,13 @@ namespace HospitalityCustomerAPI.Controllers
         private readonly IEspClient _espClient;
         private readonly ILogger<UserController> _logger;
 
+        private readonly IOtpNotificationService _otpNotificationService;
+
+        // API Key và URL của HungDuyFinanceAccounting
+        private const string PASSCODEFA = "F1n@nc3@cc0nt1ng";
+        private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
+        //private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
+
 
         public UserController(
                HungDuyHospitalityCustomerContext context,
@@ -44,7 +51,8 @@ namespace HospitalityCustomerAPI.Controllers
                IDiemBanHangPOSRepository diemBanHangPOSRepository,
                ILichSuMuaGoiDichVuPOSRepository lichSuMuaGoiDichVuPOSRepository,
                IEspClient espClient,
-               ILogger<UserController> logger
+               ILogger<UserController> logger,
+               IOtpNotificationService otpNotificationService
            ) : base(context)
         {
             _userRepository = userRepository;
@@ -58,6 +66,18 @@ namespace HospitalityCustomerAPI.Controllers
             _lichSuMuaGoiDichVuPOSRepository = lichSuMuaGoiDichVuPOSRepository;
             _espClient = espClient;
             _logger = logger;
+            _otpNotificationService = otpNotificationService;
+        }
+
+        // --- HÀM HELPER MỚI ---
+        /// <summary>
+        /// Tạo API Key động để gọi qua FA,
+        /// logic phải khớp 100% với [APIKeyCheckAttribute] bên FA
+        /// </summary>
+        private string GenerateFAGatewayApiKey()
+        {
+            // Giả định bạn có Utility.GetSHA512 trong Common
+            return Utility.GetSHA512(PASSCODEFA + DateTime.Now.ToString("yyyyMM"));
         }
 
         [HttpPost("Register")]
@@ -93,19 +113,37 @@ namespace HospitalityCustomerAPI.Controllers
                     {
                         return new ResponseModelError("Bạn đã vượt số lần nhận OTP tối đa của tháng!");
                     }
-                    if (_smsOtpRepository.UpdateOTP(username) == ActionStatus.Success.toInt())
+
+                    
+                    var (plainOtp, updateStatus) = _smsOtpRepository.GenerateAndSaveNewOtp(username);
+
+                    if (updateStatus == ActionStatus.Success.toInt() && plainOtp != null)
                     {
-                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra SMS.");
+                        string finalApiKey = GenerateFAGatewayApiKey();
+                        // "Bắn và quên" (Fire-and-forget) gọi Zalo/SMS service
+                        _ = _otpNotificationService.SendOtpAsync(username, plainOtp, finalApiKey, apiUrl);
+
+                        // Đổi "SMS" thành "tin nhắn" chung chung
+                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra tin nhắn.");
                     }
                     return new ResponseModelError("Không thể gửi lại OTP. Vui lòng thử lại.");
+                    
                 }
                 else
                 {
-                    if (_smsOtpRepository.AddOTP(username) == ActionStatus.Success.toInt())
+                    
+                    var (plainOtp, addStatus) = _smsOtpRepository.GenerateAndSaveOtp(username);
+
+                    if (addStatus == ActionStatus.Success.toInt() && plainOtp != null)
                     {
-                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra SMS.");
+                        string finalApiKey = GenerateFAGatewayApiKey();
+                        // "Bắn và quên" (Fire-and-forget) gọi Zalo/SMS service
+                        _ = _otpNotificationService.SendOtpAsync(username, plainOtp, finalApiKey, apiUrl);
+
+                        return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra tin nhắn.");
                     }
                     return new ResponseModelError("Không thể gửi OTP. Vui lòng thử lại.");
+                    
                 }
             }
 
@@ -637,6 +675,53 @@ namespace HospitalityCustomerAPI.Controllers
             };
 
             return new ResponseModelSuccess("Thành công", dto);
+        }
+
+
+        [HttpPost("SendForgotPasswordOtp")]
+        [APIKeyCheck]
+        public ResponseModel SendForgotPasswordOtp([FromForm] string username)
+        {
+            AttachCountryCodeForPhoneNumber(username, out var normalizedUsername);
+
+            // 1. Check user CÓ TỒN TẠI không (ngược với Register)
+            if (_userRepository.GetItemByPhone(normalizedUsername) == null)
+            {
+                return new ResponseModelError("Số điện thoại này chưa được đăng ký.");
+            }
+
+            // 2. Logic gửi OTP (giống hệt Register)
+            if (_smsOtpRepository.CheckPhoneExist(normalizedUsername))
+            {
+                if (!_smsOtpRepository.CheckOTPNeedToRenew(normalizedUsername))
+                {
+                    return new ResponseModel("OTPrequied", "Bạn đã yêu cầu OTP và vẫn còn hiệu lực.");
+                }
+                if (_smsOtpRepository.CheckOTPLimit(normalizedUsername))
+                {
+                    return new ResponseModelError("Bạn đã vượt số lần nhận OTP tối đa của tháng!");
+                }
+
+                var (plainOtp, updateStatus) = _smsOtpRepository.GenerateAndSaveNewOtp(normalizedUsername);
+                if (updateStatus == ActionStatus.Success.toInt() && plainOtp != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(normalizedUsername, plainOtp, finalApiKey, apiUrl);
+                    return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra tin nhắn.");
+                }
+                return new ResponseModelError("Không thể gửi lại OTP. Vui lòng thử lại.");
+            }
+            else
+            {
+                var (plainOtp, addStatus) = _smsOtpRepository.GenerateAndSaveOtp(normalizedUsername);
+                if (addStatus == ActionStatus.Success.toInt() && plainOtp != null)
+                {
+                    string finalApiKey = GenerateFAGatewayApiKey();
+                    _ = _otpNotificationService.SendOtpAsync(normalizedUsername, plainOtp, finalApiKey, apiUrl);
+                    return new ResponseModel("OTPrequied", "Đã gửi OTP. Vui lòng kiểm tra tin nhắn.");
+                }
+                return new ResponseModelError("Không thể gửi OTP. Vui lòng thử lại.");
+            }
         }
 
     }

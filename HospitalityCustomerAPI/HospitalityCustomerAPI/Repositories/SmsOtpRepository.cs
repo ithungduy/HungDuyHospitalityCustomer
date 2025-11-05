@@ -111,51 +111,78 @@ namespace HospitalityCustomerAPI.Repositories
             return GetItemByPhone(phoneNumber) != null;
         }
 
-        public int AddOTP(string phoneNumber)
+        public (string? Otp, int Status) GenerateAndSaveOtp(string phoneNumber)
         {
-            string otp = Utility.RandomNumber(otpLength);
-
-            var nowUtc = DateTime.UtcNow;
-            var monthToken = nowUtc.ToString("yyyyMM"); // dùng cùng 1 mốc thời gian
-
-            var s = new SysSmsOtp
+            try
             {
-                Ma = Guid.NewGuid(),
-                Sdt = phoneNumber,
-                CreateDate = nowUtc,                                  // LƯU UTC
-                Otp = Utility.GetSHA512(phoneNumber + monthToken + otp),
-                NumberRequest = 1
-            };
+                // 1. Tạo mã OTP (plain-text)
+                string otp = Utility.RandomNumber(otpLength);
 
-            _context.SysSmsOtp.Add(s);
-            if (_context.SaveChanges() > 0)
-            {
-                _ = SMSController.sendOTP(phoneNumber, otp, "5");    // gửi theo template
-                return ActionStatus.Success.toInt();
+                var nowUtc = DateTime.UtcNow;
+                var monthToken = nowUtc.ToString("yyyyMM"); // dùng cùng 1 mốc thời gian
+
+                // 2. Chuẩn bị entity để lưu
+                var s = new SysSmsOtp
+                {
+                    Ma = Guid.NewGuid(),
+                    Sdt = phoneNumber,
+                    CreateDate = nowUtc,                                   // LƯU UTC
+                    Otp = Utility.GetSHA512(phoneNumber + monthToken + otp), // Hash như cũ
+                    NumberRequest = 1
+                };
+
+                _context.SysSmsOtp.Add(s);
+
+                // 3. Lưu vào DB
+                _context.SaveChanges();
+
+                // 4. --- XÓA ---
+                // _ = SMSController.sendOTP(phoneNumber, otp, "5"); // <-- ĐÃ BỊ XÓA
+
+                // 5. --- THAY ĐỔI ---
+                // Trả về mã OTP (plain-text) và status thành công
+                return (otp, ActionStatus.Success.toInt());
             }
-            return ActionStatus.Error.toInt();
+            catch (Exception) // Bắt lỗi nếu SaveChanges thất bại
+            {
+                return (null, ActionStatus.Error.toInt());
+            }
         }
-        public int UpdateOTP(string phoneNumber)
+
+        public (string? Otp, int Status) GenerateAndSaveNewOtp(string phoneNumber)
         {
             var s = GetItemByPhone(phoneNumber);
-            if (s == null) return ActionStatus.NotExit.toInt();
+            if (s == null) return (null, ActionStatus.NotExit.toInt());
 
-            string otp = Utility.RandomNumber(otpLength);
-
-            var nowUtc = DateTime.UtcNow;
-            var monthToken = nowUtc.ToString("yyyyMM");
-
-            s.CreateDate = nowUtc;                                   // CẬP NHẬT UTC
-            s.Otp = Utility.GetSHA512(phoneNumber + monthToken + otp);
-            s.NumberRequest = (s.NumberRequest ?? 0) + 1;
-
-            _context.Update(s);
-            if (_context.SaveChanges() > 0)
+            try
             {
-                _ = SMSController.sendOTP(phoneNumber, otp, "5");
-                return ActionStatus.Success.toInt();
+                // 1. Tạo mã OTP (plain-text)
+                string otp = Utility.RandomNumber(otpLength);
+
+                var nowUtc = DateTime.UtcNow;
+                var monthToken = nowUtc.ToString("yyyyMM");
+
+                // 2. Cập nhật entity
+                s.CreateDate = nowUtc;                                   // CẬP NHẬT UTC
+                s.Otp = Utility.GetSHA512(phoneNumber + monthToken + otp); // Hash như cũ
+                s.NumberRequest = (s.NumberRequest ?? 0) + 1;
+
+                _context.Update(s);
+
+                // 3. Lưu vào DB
+                _context.SaveChanges();
+
+                // 4. --- XÓA ---
+                // _ = SMSController.sendOTP(phoneNumber, otp, "5"); // <-- ĐÃ BỊ XÓA
+
+                // 5. --- THAY ĐỔI ---
+                // Trả về mã OTP (plain-text) và status thành công
+                return (otp, ActionStatus.Success.toInt());
             }
-            return ActionStatus.Error.toInt();
+            catch (Exception) // Bắt lỗi nếu SaveChanges thất bại
+            {
+                return (null, ActionStatus.Error.toInt());
+            }
         }
 
         public int RemoveOTP(string phoneNumber)
