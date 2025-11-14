@@ -20,8 +20,8 @@ namespace HospitalityCustomerAPI.Controllers
         private static string messIdSuccess = "";
 
         private const string PASSCODEFA = "F1n@nc3@cc0nt1ng"; 
-        private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
-        //private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
+        //private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
+        private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
 
         private readonly HungDuyHospitalityCustomerContext _hungDuyHospitalityCustomerContext;
         private readonly INotificationService _notificationService;

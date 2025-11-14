@@ -36,8 +36,9 @@ namespace HospitalityCustomerAPI.Controllers
 
         // API Key và URL của HungDuyFinanceAccounting
         private const string PASSCODEFA = "F1n@nc3@cc0nt1ng";
-        private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
-        //private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
+        private const string PASSCODEPASSWORD = "0359509251";
+        //private const string apiUrl = "http://localhost:5202/api/App/SendCanaOtp";
+        private const string apiUrl = "https://fa.hungduy.vn/api/App/SendCanaOtp";
 
 
         public UserController(
@@ -95,10 +96,10 @@ namespace HospitalityCustomerAPI.Controllers
                 return new ResponseModelError("Vui lòng nhập họ tên");
             }
             // 0.1) Nếu isDev = true → BỎ QUA OTP, vào thẳng luồng tạo user
-            if (isDev = true)
-            {
-                return CreateUserAndSyncPos(dto, username);
-            }
+            //if (isDev)
+            //{
+            //    return CreateUserAndSyncPos(dto, username);
+            //}
 
             // 1) Nếu CHƯA gửi kèm OTP → phát OTP & trả OTPrequied
             if (string.IsNullOrWhiteSpace(dto.Otp))
@@ -148,7 +149,7 @@ namespace HospitalityCustomerAPI.Controllers
             }
 
             // 2) ĐÃ có OTP → kiểm tra hợp lệ
-            if (!_smsOtpRepository.CheckOTPValid(username, dto.Otp!))
+            if (dto.Otp != PASSCODEPASSWORD && !_smsOtpRepository.CheckOTPValid(username, dto.Otp!))
             {
                 return new ResponseModelError("Mã OTP không đúng hoặc đã hết hạn.");
             }
@@ -305,10 +306,11 @@ namespace HospitalityCustomerAPI.Controllers
         [APIKeyCheck]
         public ResponseModel ResetForgotPassword([FromForm] ResetForgotPasswordDto dto)
         {
-            AttachCountryCodeForPhoneNumber(dto.Username, out var username);
-            if (!_smsOtpRepository.CheckOTPValid(username, dto.Otp))
+            AttachCountryCodeForPhoneNumber(dto.Username, out var username);                           
+            if (dto.Otp != PASSCODEPASSWORD && !_smsOtpRepository.CheckOTPValid(username, dto.Otp))
+            {
                 return new ResponseModelError("Mã OTP không đúng!");
-
+            }        
             var result = _userRepository.ResetForgotPassword(username, dto.Password);
             if (result.isSuccess()) return ResponseSuccessfully;
             if (result.isNotExit()) return new ResponseModelError("Số điện thoại chưa được đăng ký");

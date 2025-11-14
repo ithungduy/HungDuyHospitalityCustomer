@@ -12,7 +12,7 @@ namespace HospitalityCustomerAPI.Repositories
     {
         private readonly HungDuyHospitalityCustomerContext _context;
         private static readonly int otpLength = 6;
-        private static readonly int smsLimit = 5;
+        private static readonly int smsLimit = 10;
 
         private static string NormalizeHash(string s)
         {
