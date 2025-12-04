@@ -45,7 +45,7 @@ namespace HospitalityCustomerAPI.Common
         TinTuc,
 
         [EnumGuid("7f151c56-efaa-48ba-89d0-bc45ca97645f")]
-        NoiBat,
+        ThamMy,
     }
 
     public enum QuocGia

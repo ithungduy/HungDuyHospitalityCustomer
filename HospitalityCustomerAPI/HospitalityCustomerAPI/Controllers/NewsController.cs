@@ -26,9 +26,9 @@ namespace HospitalityCustomerAPI.Controllers
         [APIKeyCheck]
         public ResponseModel GetTinTucTongQuat() => _newsRepository.GetTinTucTheoLoai(TinTucEnum.TinTuc.GetEnumGuid());
 
-        [HttpPost("GetTinTucNoiBat")]
+        [HttpPost("GetTinTucThamMy")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucNoiBat() => _newsRepository.GetTinTucTheoLoai(TinTucEnum.NoiBat.GetEnumGuid());
+        public ResponseModel GetTinTucThamMy() => _newsRepository.GetTinTucTheoLoai(TinTucEnum.ThamMy.GetEnumGuid());
 
         [HttpPost("GetTinTucTheoLoai")]
         [APIKeyCheck]
@@ -38,9 +38,9 @@ namespace HospitalityCustomerAPI.Controllers
         [APIKeyCheck]
         public ResponseModel GetVideoAds() => _newsRepository.GetVideoAds();
 
-        [HttpPost("GetTinTucNoiBatHome")]
+        [HttpPost("GetTinTucThamMyHome")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucNoiBatHome() => _newsRepository.GetTinTucNoiBatHome();
+        public ResponseModel GetTinTucThamMyHome() => _newsRepository.GetTinTucThamMyHome();
 
         [HttpGet("/news")]
         [APIKeyCheck]

@@ -81,7 +81,7 @@ namespace HospitalityCustomerAPI.Repositories
             return new ResponseModelSuccess("", result);
         }
 
-        public ResponseModel GetTinTucNoiBatHome()
+        public ResponseModel GetTinTucThamMyHome()
         {
             var result = (from x in _context.Set<NwsTinTuc>()
                           join loaitt in _context.Set<NwsLoaiTinTuc>()
@@ -101,6 +101,7 @@ namespace HospitalityCustomerAPI.Repositories
                               ngaytao = x.CreatedDate
                           })
                           .OrderByDescending(item => item.ngaytao)
+                          .Take(10)
                           .ToList();
 
             return new ResponseModelSuccess("", result);
