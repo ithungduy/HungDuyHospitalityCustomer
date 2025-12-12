@@ -27,6 +27,12 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
     public virtual DbSet<OpsLichSuMuaGoiDichVu> OpsLichSuMuaGoiDichVu { get; set; }
 
+    public virtual DbSet<SchDangKyTap> SchDangKyTap { get; set; }
+
+    public virtual DbSet<SchLichTapLuyen> SchLichTapLuyen { get; set; }
+
+    public virtual DbSet<ServiceCall> ServiceCall { get; set; }
+
     public virtual DbSet<SysAppVersion> SysAppVersion { get; set; }
 
     public virtual DbSet<SysNotifications> SysNotifications { get; set; }
@@ -129,6 +135,51 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.NgayHetHan).HasColumnType("datetime");
             entity.Property(e => e.NgayKichHoat).HasColumnType("datetime");
             entity.Property(e => e.NhanVienPt).HasColumnName("NhanVienPT");
+        });
+
+        modelBuilder.Entity<SchDangKyTap>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("sch_DangKyTap");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.GhiChu).HasMaxLength(50);
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<SchLichTapLuyen>(entity =>
+        {
+            entity.HasKey(e => e.Ma);
+
+            entity.ToTable("sch_LichTapLuyen");
+
+            entity.Property(e => e.Ma).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.DeletedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.NgayTapLuyen).HasColumnType("datetime");
+            entity.Property(e => e.NoiDung).HasMaxLength(1000);
+            entity.Property(e => e.TenBoPhan).HasMaxLength(200);
+            entity.Property(e => e.TenHuanLuyenVien).HasMaxLength(200);
+            entity.Property(e => e.TenPhongTap).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ServiceCall>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ServiceC__3214EC07503CDF80");
+
+            entity.HasIndex(e => new { e.OutletId, e.TableId, e.Status }, "IX_ServiceCall_Branch_Table_Status");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedIp).HasMaxLength(45);
+            entity.Property(e => e.DateResponse).HasColumnType("datetime");
+            entity.Property(e => e.Note).HasMaxLength(300);
+            entity.Property(e => e.RequestedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.StaffAck).HasMaxLength(100);
+            entity.Property(e => e.TableCode).HasMaxLength(50);
         });
 
         modelBuilder.Entity<SysAppVersion>(entity =>

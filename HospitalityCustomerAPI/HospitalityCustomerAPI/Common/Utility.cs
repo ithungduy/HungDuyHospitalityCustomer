@@ -110,8 +110,28 @@ namespace HospitalityCustomerAPI.Common
                 return "";
             }
         }
-     
 
+        public static (DateTime TuNgay, DateTime DenNgay) GetDateRangeOfWeek(int weekNumber, int year)
+        {
+            // Lấy ngày 1/1 của năm
+            DateTime firstDayOfYear = new DateTime(year, 1, 1);
+
+            // Tính số ngày cần lùi/tiến để đến thứ Hai (giống logic JavaScript)
+            // JavaScript: day === 0 ? -6 : 1 - day
+            int day = (int)firstDayOfYear.DayOfWeek; // 0=CN, 1=T2, ..., 6=T7
+            int daysOffset = (day == 0) ? -6 : (1 - day);
+
+            // Ngày bắt đầu của tuần 1 (thứ Hai đầu tiên, có thể thuộc năm trước)
+            DateTime firstMonday = firstDayOfYear.AddDays(daysOffset);
+
+            // Tuần cần tìm: (weekNumber - 1) tuần sau tuần 1
+            DateTime tuNgay = firstMonday.AddDays((weekNumber - 1) * 7);
+
+            // Ngày kết thúc là Chủ nhật
+            DateTime denNgay = tuNgay.AddDays(6);
+
+            return (tuNgay, denNgay);
+        }
 
     }
 }
