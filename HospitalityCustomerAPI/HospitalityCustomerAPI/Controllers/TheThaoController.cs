@@ -26,6 +26,7 @@ namespace HospitalityCustomerAPI.Controllers
             int nam = Nam.ToInt();
             Guid maKhachHang = MaKhachHang.GetGuid();
 
+            // FIX 1: Đưa validate lên đầu tiên để tránh crash hàm DaysInMonth
             if (thang < 1 || thang > 12) return new ResponseModelError("Tháng không hợp lệ");
             if (nam < 1) return new ResponseModelError("Năm không hợp lệ");
 
@@ -35,21 +36,21 @@ namespace HospitalityCustomerAPI.Controllers
             int soNgay = DateTime.DaysInMonth(nam, thang);
             DateTime dtpTuNgay = new DateTime(nam, thang, 1);
             DateTime dtpDenNgay = new DateTime(nam, thang, soNgay);
- 
+
             for (int i = 1; i <= soNgay; i++)
             {
                 var ngay = new DateTime(nam, thang, i);
                 list.Add(new LichNgay
                 {
                     Ngay = ngay,
-                    Thu = culture.DateTimeFormat.GetDayName(ngay.DayOfWeek), // "thứ hai", "chủ nhật", ...
+                    Thu = culture.DateTimeFormat.GetDayName(ngay.DayOfWeek),
                     NgayTrongThang = i,
                     Thang = thang,
                     Nam = nam,
                     CoLichTap = false
                 });
             }
-            
+
             var ngayTapTrongThang = await _customerContext.SchLichTapLuyen
                 .AsNoTracking()
                 .Where(t => t.NgayTapLuyen.HasValue
@@ -121,7 +122,7 @@ namespace HospitalityCustomerAPI.Controllers
                 .Select(g => new { MaLichTapLuyen = g.Key, So = g.Count() })
                 .ToDictionaryAsync(k => k.MaLichTapLuyen, v => v.So);
 
-            var listDangKyTheoKhachHang = await listDangKy.Where(x => x.MaKhachHang == maKhachHang).Select(x=> new
+            var listDangKyTheoKhachHang = await listDangKy.Where(x => x.MaKhachHang == maKhachHang).Select(x => new
             {
                 maLichTap = x.MaLichTapLuyen,
                 ngayDangKy = x.CreatedDate,
@@ -149,8 +150,7 @@ namespace HospitalityCustomerAPI.Controllers
             return new ResponseModelSuccess("", listData);
         }
 
-
-        [HttpGet("getGioTapTheoNgay")]
+        [HttpPost("dangKyLichTap")]
         [TokenUserCheckHTTP]
         public async Task<ResponseModel> setLichTap(string MaKhachHang, string MaLichSuGoiDichVu, string MaLichTap)
         {
@@ -158,96 +158,159 @@ namespace HospitalityCustomerAPI.Controllers
             Guid maLichSuGoiDichVu = MaLichSuGoiDichVu.GetGuid();
             Guid maLichTap = MaLichTap.GetGuid();
 
-            // kiểm tra gói hết hạn chưa, số lần còn ko
-            // kiểm tra khách đăng ký trùng
-            var goiDichVu = await _customerContext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == maLichSuGoiDichVu && !(x.Deleted ?? false));
-            if (goiDichVu == null)
-            {
-                return new ResponseModelError("Gói dịch vụ không tồn tại");
-            }
-            var now = DateTime.Now;
-            if (goiDichVu.NgayHetHan.HasValue && goiDichVu.NgayHetHan.Value.Date < now.Date)
-            {
-                return new ResponseModelError("Gói dịch vụ quá hạn sử dụng");
-            }
-            if ((goiDichVu.SoLanConLai ?? 0) <= 0)
-            {
-                return new ResponseModelError("Gói dịch vụ hết số lần sử dụng");
-            }
-            var kiemTraTrung = await _customerContext.SchDangKyTap.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == maKhachHang 
-                                                && x.MaGoiDichVu == maLichSuGoiDichVu 
-                                                && x.MaLichTapLuyen == maLichTap 
-                                                && !(x.Deleted ?? false));
-
-            if (kiemTraTrung != null)
-            {
-                return new ResponseModelError("Lịch tập đã đăng ký rồi");
-            }
-
-            SchDangKyTap item = new SchDangKyTap
-            {
-                MaKhachHang = maKhachHang,
-                MaGoiDichVu = maLichSuGoiDichVu,
-                MaLichTapLuyen = maLichTap,
-                CreatedDate = now,
-                UserCreated = objToken.userid,
-            };
+            using var transaction = _customerContext.Database.BeginTransaction();
             try
             {
+                // FIX 3: Bỏ AsNoTracking để có thể Update số lần còn lại
+                var goiDichVu = await _customerContext.OpsLichSuMuaGoiDichVu
+                                    .FirstOrDefaultAsync(x => x.Ma == maLichSuGoiDichVu && !(x.Deleted ?? false));
+
+                if (goiDichVu == null) return new ResponseModelError("Gói dịch vụ không tồn tại");
+
+                var now = DateTime.Now;
+                if (goiDichVu.NgayHetHan.HasValue && goiDichVu.NgayHetHan.Value.Date < now.Date)
+                    return new ResponseModelError("Gói dịch vụ quá hạn sử dụng");
+
+                if ((goiDichVu.SoLanConLai ?? 0) <= 0)
+                    return new ResponseModelError("Gói dịch vụ hết số lần sử dụng");
+
+                // Check trùng
+                var kiemTraTrung = await _customerContext.SchDangKyTap.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == maKhachHang
+                                                    && x.MaGoiDichVu == maLichSuGoiDichVu
+                                                    && x.MaLichTapLuyen == maLichTap
+                                                    && !(x.Deleted ?? false));
+
+                // Check Full Slot
+                var lopHoc = await _customerContext.SchLichTapLuyen.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == maLichTap);
+                if (lopHoc == null) return new ResponseModelError("Lớp học không tồn tại");
+
+                var soLuongDaDangKy = await _customerContext.SchDangKyTap
+                                    .CountAsync(x => x.MaLichTapLuyen == maLichTap && !(x.Deleted ?? false));
+
+                if (soLuongDaDangKy >= (lopHoc.SoHocVien ?? 0))
+                    return new ResponseModelError("Lớp học đã đầy, vui lòng chọn giờ khác");
+
+                if (kiemTraTrung != null) return new ResponseModelError("Lịch tập đã đăng ký rồi");
+
+                // Tạo đăng ký mới
+                SchDangKyTap item = new SchDangKyTap
+                {
+                    MaKhachHang = maKhachHang,
+                    MaGoiDichVu = maLichSuGoiDichVu,
+                    MaLichTapLuyen = maLichTap,
+                    CreatedDate = now,
+                    UserCreated = objToken.userid,
+                };
                 await _customerContext.AddAsync(item);
+
+                // FIX 3 (Tiếp): Trừ số lần còn lại và Update gói dịch vụ
+                goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) - 1;
+                _customerContext.Update(goiDichVu);
+
                 await _customerContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
                 return new ResponseModelSuccess("Đã đăng ký thành công");
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return new ResponseModelError(ex.Message);
             }
         }
 
-        [HttpGet("getGioTapTheoNgay")]
+        [HttpPost("huyLichTap")]
         [TokenUserCheckHTTP]
         public async Task<ResponseModel> delLichTap(string Ma)
         {
             Guid ma = Ma.GetGuid();
 
-            var now = DateTime.Now;
-            var item = await _customerContext.SchDangKyTap.AsNoTracking().FirstOrDefaultAsync(x => x.Ma == ma && !(x.Deleted ?? false));
-
-            if (item == null)
-            {
-                return new ResponseModelError("Lịch đăng ký không tồn tại");
-            }
-
-            if (item.CreatedDate.HasValue && item.CreatedDate.Value.AddHours(24) < now)
-            {
-                return new ResponseModelError("Lịch đăng ký quá 24 giờ không thể huỷ");
-            }         
-
+            using var transaction = _customerContext.Database.BeginTransaction();
             try
             {
-                item.Deleted = true;
-                item.DeletedDate = now;
-                item.UserDeleted = objToken.userid;
+                var now = DateTime.Now;
 
-                _customerContext.Update(item);
+                // 1. Lấy thông tin đăng ký KÈM THEO thông tin lớp học
+                var item = await (from dk in _customerContext.SchDangKyTap
+                                  join lt in _customerContext.SchLichTapLuyen on dk.MaLichTapLuyen equals lt.Ma
+                                  where dk.Ma == ma && !(dk.Deleted ?? false)
+                                  select new { DangKy = dk, LichTap = lt }).FirstOrDefaultAsync();
+
+                if (item == null) return new ResponseModelError("Lịch đăng ký không tồn tại");
+
+                // 2. CHECK RULE 1: Không cho hủy nếu đã đăng ký quá 24h
+                if (item.DangKy.CreatedDate.HasValue && item.DangKy.CreatedDate.Value.AddHours(24) < now)
+                {
+                    return new ResponseModelError("Lịch đã đăng ký quá 24h, không thể hủy.");
+                }
+
+                // 3. CHECK RULE 2: Không cho hủy sát giờ (trước giờ tập 2 tiếng)
+                if (item.LichTap.NgayTapLuyen.HasValue && item.LichTap.TuGio.HasValue)
+                {
+                    // Chuyển TimeOnly sang TimeSpan và cộng vào DateTime (đã fix lỗi toán tử +)
+                    DateTime thoiGianBatDau = item.LichTap.NgayTapLuyen.Value.Date.Add(item.LichTap.TuGio.Value.ToTimeSpan());
+
+                    if (now.AddHours(2) > thoiGianBatDau)
+                    {
+                        return new ResponseModelError("Không thể hủy lịch trước giờ tập 2 tiếng.");
+                    }
+                }
+
+                // 4. Xóa lịch đăng ký (Soft delete)
+                item.DangKy.Deleted = true;
+                item.DangKy.DeletedDate = now;
+                item.DangKy.UserDeleted = objToken.userid;
+
+                _customerContext.Update(item.DangKy);
+
+                // =================================================================
+                // 5. LOGIC HOÀN LẠI LƯỢT TẬP (REFUND)
+                // =================================================================
+                if (item.DangKy.MaGoiDichVu.HasValue)
+                {
+                    // Tìm gói dịch vụ mà khách đã dùng để book
+                    var goiDichVu = await _customerContext.OpsLichSuMuaGoiDichVu
+                                        .FirstOrDefaultAsync(x => x.Ma == item.DangKy.MaGoiDichVu);
+
+                    if (goiDichVu != null)
+                    {
+                        // Cộng lại 1 lần tập
+                        goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) + 1;                       
+                        _customerContext.Update(goiDichVu);
+                    }
+                }
+                // =================================================================
+
                 await _customerContext.SaveChangesAsync();
-                return new ResponseModelSuccess("Đã huỷ thành công");
+                await transaction.CommitAsync();
+
+                return new ResponseModelSuccess("Đã huỷ và hoàn lại lượt tập thành công");
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return new ResponseModelError(ex.Message);
             }
-        }       
+        }
     }
 
     public class LichNgay
+
     {
+
         public DateTime Ngay { get; set; }
+
         public string Thu { get; set; }
+
         public int NgayTrongThang { get; set; }
+
         public int Thang { get; set; }
+
         public int Nam { get; set; }
+
         public bool CoLichTap { get; set; } = false;
-        public bool CoDangKy { get; set; } = false;       
+
+        public bool CoDangKy { get; set; } = false;
+
     }
 }
