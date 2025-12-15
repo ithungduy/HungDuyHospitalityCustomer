@@ -215,12 +215,13 @@ namespace HospitalityCustomerAPI.Controllers
                     UserCreated = objToken.userid,
                 };
                 await _customerContext.AddAsync(item);
-
-                // FIX 3 (Tiếp): Trừ số lần còn lại và Update gói dịch vụ
-                goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) - 1;
+               
+                goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
+                goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
+                
                 _customerContext.Update(goiDichVu);
-
                 await _customerContext.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 return new ResponseModelSuccess("Đã đăng ký thành công");
@@ -296,8 +297,16 @@ namespace HospitalityCustomerAPI.Controllers
 
                     if (goiDichVu != null)
                     {
-                        // Cộng lại 1 lần tập
-                        goiDichVu.SoLanConLai = (goiDichVu.SoLanConLai ?? 0) + 1;                       
+                        
+                        goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) - 1;
+
+                        // Safety check: Không để số lần đã dùng âm
+                        if (goiDichVu.SoLanDaSuDung < 0) goiDichVu.SoLanDaSuDung = 0;
+
+                        // Tính lại số lần còn lại dựa trên tổng và đã dùng
+                        goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
+                     
+
                         _customerContext.Update(goiDichVu);
                     }
                 }

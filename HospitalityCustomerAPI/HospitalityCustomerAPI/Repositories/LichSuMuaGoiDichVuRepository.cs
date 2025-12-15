@@ -97,5 +97,39 @@ namespace HospitalityCustomerAPI.Repositories
 
             return goiDichVu;
         }
+
+        public List<LichSuGoiDichVuDTO> GetListGoiDichVuByBoPhan(Guid MaKhachHang, Guid MaBoPhan)
+        {
+            var query = from ls in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() // Thêm AsNoTracking cho tối ưu
+                                                                                 // 1. Sửa join: Dùng MaHangHoa và bảng TblHangHoa
+                        join g in _context.TblHangHoa.AsNoTracking() on ls.MaHangHoa equals g.Ma
+                        where ls.MaKhachHang == MaKhachHang
+                           && ls.MaPhongBan == MaBoPhan
+                           && !(ls.Deleted ?? false)
+
+                           // 2. Sửa logic check kích hoạt: Dựa vào NgayKichHoat != null
+                           && ls.NgayKichHoat != null
+
+                           // 3. Logic hiển thị gói khả dụng: Còn lượt
+                           && ((ls.SoLanSuDung ?? 0) - (ls.SoLanDaSuDung ?? 0) > 0)
+
+                           // 4. Logic hạn sử dụng: Chưa hết hạn hoặc không có hạn
+                           && (ls.NgayHetHan == null || ls.NgayHetHan.Value.Date >= DateTime.Now.Date)
+
+                        orderby ls.NgayHetHan ascending
+                        select new LichSuGoiDichVuDTO
+                        {
+                            MaLichSuGoiDichVu = ls.Ma,
+                            TenGoiDichVu = g.Ten,
+                            NgayKichHoat = ls.NgayKichHoat,
+                            NgayHetHan = ls.NgayHetHan,
+                            SoLan = ls.SoLanSuDung ?? 0,
+                            SoLanDaSuDung = ls.SoLanDaSuDung ?? 0,                            
+                            ConLai = ls.SoLanConLai ?? 0,                            
+                            MaBoPhan = ls.MaPhongBan ?? Guid.Empty
+                        };
+
+            return query.ToList();
+        }
     }
 }

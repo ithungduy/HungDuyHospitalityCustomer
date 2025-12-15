@@ -8,5 +8,7 @@ namespace HospitalityCustomerAPI.Repositories.IRepositories
         List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang);
         List<LichSuGoiDichVuDTO> GetListGoiDichVuConSuDung(Guid MaKhachHang);
         OpsLichSuMuaGoiDichVu GetById(Guid Ma);
+
+        List<LichSuGoiDichVuDTO> GetListGoiDichVuByBoPhan(Guid MaKhachHang, Guid MaBoPhan);
     }
 }

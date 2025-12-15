@@ -761,5 +761,30 @@ namespace HospitalityCustomerAPI.Controllers
             }
         }
 
+        [HttpPost("GetPilatesPackages")]
+        [TokenUserCheckHTTP]
+        public ResponseModel GetPilatesPackages()
+        {
+            // 1. Lấy thông tin User & Khách hàng
+            var userId = objToken.userid;
+            var sysUser = _userRepository.GetItem(userId);
+
+            if (sysUser == null || sysUser.MaKhachHang == null)
+            {
+                // Fallback: Thử tìm theo SĐT trong bảng Khách Hàng nếu bảng User chưa sync
+                // (Tùy logic dự án, ở đây return lỗi cho an toàn)
+                return new ResponseModelError("Không tìm thấy thông tin khách hàng liên kết.");
+            }
+
+            // 2. Lấy GUID Pilates từ Enum cứng (Extension method GetEnumGuid)
+            Guid maBoPhanPilates = BoPhanTheThaoEnum.Pilates.GetEnumGuid();
+
+            // 3. Gọi Repository
+            var listData = _lichSuMuaGoiDichVuRepository
+                            .GetListGoiDichVuByBoPhan(sysUser.MaKhachHang.Value, maBoPhanPilates);
+
+            // 4. Trả về
+            return new ResponseModelSuccess("Thành công", listData);
+        }
     }
 }
