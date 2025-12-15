@@ -94,7 +94,6 @@ namespace HospitalityCustomerAPI.Controllers
             DateTime dtpNgay = Ngay.ToDateTime2(DateTime.Now).Value.Date;
 
             // 1. Tạo Query gốc (Chưa execute) để tái sử dụng
-            // Logic: Lấy các lớp học trong ngày đã chọn
             var queryLichTapTrongNgay = _customerContext.SchLichTapLuyen.AsNoTracking()
                 .Where(t => t.NgayTapLuyen.HasValue
                             && t.NgayTapLuyen.Value.Date == dtpNgay
@@ -111,25 +110,25 @@ namespace HospitalityCustomerAPI.Controllers
                     tuGio = x.TuGio,
                     denGio = x.DenGio,
                     noiDung = x.NoiDung,
-                    soHocVien = x.SoHocVien,
+                    soHocVien = x.SoHocVien,                  
+                    ngayTapLuyen = x.NgayTapLuyen
                 }).ToListAsync();
 
-            // 3. Lấy số lượng đã đăng ký của từng lớp (Dùng JOIN để tránh lỗi SQL version cũ)
+            // 3. Lấy số lượng đã đăng ký (Giữ nguyên)
             var dictSoDangKy = await (from dk in _customerContext.SchDangKyTap.AsNoTracking()
                                       join lt in queryLichTapTrongNgay on dk.MaLichTapLuyen equals lt.Ma
                                       where !(dk.Deleted ?? false)
                                       group dk by dk.MaLichTapLuyen into g
                                       select new { MaLichTapLuyen = g.Key, So = g.Count() })
-                                     .ToDictionaryAsync(k => k.MaLichTapLuyen!.Value, v => v.So);
+                                      .ToDictionaryAsync(k => k.MaLichTapLuyen!.Value, v => v.So);
 
-            // 4. Lấy danh sách đăng ký CỦA KHÁCH HÀNG (để biết đã book lớp nào)
-            // QUAN TRỌNG: Lấy thêm dk.Ma as maDangKy
+            // 4. Lấy danh sách đăng ký CỦA KHÁCH HÀNG (Giữ nguyên)
             var listDangKyTheoKhachHang = await (from dk in _customerContext.SchDangKyTap.AsNoTracking()
                                                  join lt in queryLichTapTrongNgay on dk.MaLichTapLuyen equals lt.Ma
                                                  where dk.MaKhachHang == maKhachHang && !(dk.Deleted ?? false)
                                                  select new
                                                  {
-                                                     maDangKy = dk.Ma, // <--- ID phiếu đăng ký (dùng để hủy)
+                                                     maDangKy = dk.Ma,
                                                      maLichTap = dk.MaLichTapLuyen,
                                                      ngayDangKy = dk.CreatedDate,
                                                  }).ToListAsync();
@@ -141,20 +140,21 @@ namespace HospitalityCustomerAPI.Controllers
                     dictSoDangKy.TryGetValue(x.ma, out var soDangKy);
                     return new
                     {
-                        x.ma, // ID Lớp học
+                        x.ma,
                         x.maHuanLuyenVien,
                         x.tenHuanLuyenVien,
                         x.tenPhongTap,
                         x.tuGio,
                         x.denGio,
                         x.noiDung,
-                        x.soHocVien,
+                        x.soHocVien,                      
+                        x.ngayTapLuyen,
+
                         soHocVienDangKy = soDangKy,
                         choTrong = Math.Max(0, (x.soHocVien ?? 0) - soDangKy),
-                        // Map list đăng ký vào từng lớp tương ứng
                         DangKys = listDangKyTheoKhachHang
-                                    .Where(a => a.maLichTap == x.ma)
-                                    .ToList(),
+                                     .Where(a => a.maLichTap == x.ma)
+                                     .ToList(),
                     };
                 })
                 .OrderBy(x => x.tuGio)
