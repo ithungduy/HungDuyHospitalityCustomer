@@ -72,14 +72,18 @@ namespace HospitalityCustomerAPI.Controllers
                                               }).Distinct().ToListAsync();
 
             var setNgayTap = new HashSet<DateTime>(ngayTapTrongThang);
-            var setngayDangKyTrongThang = new HashSet<DateTime>(ngayTapTrongThang);
+            var setNgayDangKy = new HashSet<DateTime>(
+                ngayDangKyTrongThang
+                    .Where(x => x.NgayTapLuyen.HasValue)
+                    .Select(x => x.NgayTapLuyen.Value.Date)
+            );
 
             foreach (var d in list)
             {
                 if (setNgayTap.Contains(d.Ngay.Date))
                     d.CoLichTap = true;
 
-                if (setngayDangKyTrongThang.Contains(d.Ngay.Date))
+                if (setNgayDangKy.Contains(d.Ngay.Date))
                     d.CoDangKy = true;
             }
 
@@ -149,7 +153,6 @@ namespace HospitalityCustomerAPI.Controllers
                         x.noiDung,
                         x.soHocVien,                      
                         x.ngayTapLuyen,
-
                         soHocVienDangKy = soDangKy,
                         choTrong = Math.Max(0, (x.soHocVien ?? 0) - soDangKy),
                         DangKys = listDangKyTheoKhachHang
