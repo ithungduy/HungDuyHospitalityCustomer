@@ -8,7 +8,7 @@ namespace HospitalityCustomerAPI.Repositories.IRepositories
         ResponseModel GetTinTuc();
         ResponseModel GetTinTucTheoLoai(Guid maLoai);
         ResponseModel GetVideoAds();
-        ResponseModel GetTinTucThamMyHome();
+        ResponseModel GetTinTucNoiBatHome();
 
         Task<ResponseModel<PagedResult<NewsItemDto>>> GetNewsAsync(Guid? maLoai, int page, int pageSize, CancellationToken ct);
         Task<ResponseModel<IReadOnlyList<NewsItemDto>>> GetHighlightedAsync(CancellationToken ct);

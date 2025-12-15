@@ -38,9 +38,9 @@ namespace HospitalityCustomerAPI.Controllers
         [APIKeyCheck]
         public ResponseModel GetVideoAds() => _newsRepository.GetVideoAds();
 
-        [HttpPost("GetTinTucThamMyHome")]
+        [HttpPost("GetTinTucNoiBatHome")]
         [APIKeyCheck]
-        public ResponseModel GetTinTucThamMyHome() => _newsRepository.GetTinTucThamMyHome();
+        public ResponseModel GetTinTucNoiBatHome() => _newsRepository.GetTinTucNoiBatHome();
 
         [HttpGet("/news")]
         [APIKeyCheck]

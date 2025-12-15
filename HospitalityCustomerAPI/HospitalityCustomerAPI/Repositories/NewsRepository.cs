@@ -81,7 +81,7 @@ namespace HospitalityCustomerAPI.Repositories
             return new ResponseModelSuccess("", result);
         }
 
-        public ResponseModel GetTinTucThamMyHome()
+        public ResponseModel GetTinTucNoiBatHome()
         {
             var result = (from x in _context.Set<NwsTinTuc>()
                           join loaitt in _context.Set<NwsLoaiTinTuc>()

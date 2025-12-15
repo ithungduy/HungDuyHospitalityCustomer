@@ -10,6 +10,7 @@ using System.Globalization;
 
 namespace HospitalityCustomerAPI.Controllers
 {
+    [Route("[controller]")]
     public class TheThaoController : ApiControllerBase
     {
         private readonly HungDuyHospitalityCustomerContext _customerContext;
@@ -92,11 +93,15 @@ namespace HospitalityCustomerAPI.Controllers
             Guid maKhachHang = MaKhachHang.GetGuid();
             DateTime dtpNgay = Ngay.ToDateTime2(DateTime.Now).Value.Date;
 
-            var listDataTemp = await _customerContext.SchLichTapLuyen
-                .AsNoTracking()
+            // 1. Tạo Query gốc (Chưa execute) để tái sử dụng
+            // Logic: Lấy các lớp học trong ngày đã chọn
+            var queryLichTapTrongNgay = _customerContext.SchLichTapLuyen.AsNoTracking()
                 .Where(t => t.NgayTapLuyen.HasValue
                             && t.NgayTapLuyen.Value.Date == dtpNgay
-                            && !(t.Deleted ?? false))
+                            && !(t.Deleted ?? false));
+
+            // 2. Lấy danh sách thông tin cơ bản của Lớp học từ Query trên
+            var listDataTemp = await queryLichTapTrongNgay
                 .Select(x => new
                 {
                     ma = x.Ma,
@@ -109,44 +114,52 @@ namespace HospitalityCustomerAPI.Controllers
                     soHocVien = x.SoHocVien,
                 }).ToListAsync();
 
-            var maLichTapIds = listDataTemp.Select(x => x.ma).ToList();
+            // 3. Lấy số lượng đã đăng ký của từng lớp (Dùng JOIN để tránh lỗi SQL version cũ)
+            var dictSoDangKy = await (from dk in _customerContext.SchDangKyTap.AsNoTracking()
+                                      join lt in queryLichTapTrongNgay on dk.MaLichTapLuyen equals lt.Ma
+                                      where !(dk.Deleted ?? false)
+                                      group dk by dk.MaLichTapLuyen into g
+                                      select new { MaLichTapLuyen = g.Key, So = g.Count() })
+                                     .ToDictionaryAsync(k => k.MaLichTapLuyen!.Value, v => v.So);
 
-            var listDangKy = _customerContext.SchDangKyTap
-               .AsNoTracking()
-               .Where(d => d.MaLichTapLuyen.HasValue
-                           && maLichTapIds.Contains(d.MaLichTapLuyen.Value)
-                           && !(d.Deleted ?? false));
+            // 4. Lấy danh sách đăng ký CỦA KHÁCH HÀNG (để biết đã book lớp nào)
+            // QUAN TRỌNG: Lấy thêm dk.Ma as maDangKy
+            var listDangKyTheoKhachHang = await (from dk in _customerContext.SchDangKyTap.AsNoTracking()
+                                                 join lt in queryLichTapTrongNgay on dk.MaLichTapLuyen equals lt.Ma
+                                                 where dk.MaKhachHang == maKhachHang && !(dk.Deleted ?? false)
+                                                 select new
+                                                 {
+                                                     maDangKy = dk.Ma, // <--- ID phiếu đăng ký (dùng để hủy)
+                                                     maLichTap = dk.MaLichTapLuyen,
+                                                     ngayDangKy = dk.CreatedDate,
+                                                 }).ToListAsync();
 
-            var dictSoDangKy = await listDangKy
-                .GroupBy(d => d.MaLichTapLuyen!.Value)
-                .Select(g => new { MaLichTapLuyen = g.Key, So = g.Count() })
-                .ToDictionaryAsync(k => k.MaLichTapLuyen, v => v.So);
-
-            var listDangKyTheoKhachHang = await listDangKy.Where(x => x.MaKhachHang == maKhachHang).Select(x => new
-            {
-                maLichTap = x.MaLichTapLuyen,
-                ngayDangKy = x.CreatedDate,
-            }).ToListAsync();
-
+            // 5. Ghép dữ liệu lại để trả về Client
             var listData = listDataTemp
-            .Select(x =>
-            {
-                dictSoDangKy.TryGetValue(x.ma, out var soDangKy);
-                return new
+                .Select(x =>
                 {
-                    x.ma,
-                    x.maHuanLuyenVien,
-                    x.tenHuanLuyenVien,
-                    x.tenPhongTap,
-                    x.tuGio,
-                    x.denGio,
-                    x.noiDung,
-                    x.soHocVien,
-                    soHocVienDangKy = soDangKy,
-                    choTrong = Math.Max(0, (x.soHocVien ?? 0) - soDangKy),
-                    DangKys = listDangKyTheoKhachHang.Where(a => a.maLichTap == x.ma).ToList(),
-                };
-            }).OrderBy(x => x.tuGio).ToList();
+                    dictSoDangKy.TryGetValue(x.ma, out var soDangKy);
+                    return new
+                    {
+                        x.ma, // ID Lớp học
+                        x.maHuanLuyenVien,
+                        x.tenHuanLuyenVien,
+                        x.tenPhongTap,
+                        x.tuGio,
+                        x.denGio,
+                        x.noiDung,
+                        x.soHocVien,
+                        soHocVienDangKy = soDangKy,
+                        choTrong = Math.Max(0, (x.soHocVien ?? 0) - soDangKy),
+                        // Map list đăng ký vào từng lớp tương ứng
+                        DangKys = listDangKyTheoKhachHang
+                                    .Where(a => a.maLichTap == x.ma)
+                                    .ToList(),
+                    };
+                })
+                .OrderBy(x => x.tuGio)
+                .ToList();
+
             return new ResponseModelSuccess("", listData);
         }
 
@@ -244,12 +257,21 @@ namespace HospitalityCustomerAPI.Controllers
                     return new ResponseModelError("Lịch đã đăng ký quá 24h, không thể hủy.");
                 }
 
-                // 3. CHECK RULE 2: Không cho hủy sát giờ (trước giờ tập 2 tiếng)
+                // 3. CHECK RULE 2: Validate thời gian
                 if (item.LichTap.NgayTapLuyen.HasValue && item.LichTap.TuGio.HasValue)
                 {
-                    // Chuyển TimeOnly sang TimeSpan và cộng vào DateTime (đã fix lỗi toán tử +)
-                    DateTime thoiGianBatDau = item.LichTap.NgayTapLuyen.Value.Date.Add(item.LichTap.TuGio.Value.ToTimeSpan());
+                    // Tính thời gian bắt đầu chính xác
+                    DateTime thoiGianBatDau = item.LichTap.NgayTapLuyen.Value.Date
+                                              .Add(item.LichTap.TuGio.Value.ToTimeSpan());
 
+                    // CASE A: Nếu lớp học ĐÃ diễn ra rồi (Quá khứ) -> Chặn luôn
+                    if (now >= thoiGianBatDau)
+                    {
+                        return new ResponseModelError("Lớp học đã bắt đầu hoặc kết thúc, không thể hủy.");
+                    }
+
+                    // CASE B: Nếu lớp học CHƯA diễn ra (Tương lai), nhưng còn ít hơn 2 tiếng
+                    // Logic: Nếu (Bây giờ + 2 tiếng) mà vượt quá (lớn hơn) giờ bắt đầu -> Tức là khoảng cách < 2h
                     if (now.AddHours(2) > thoiGianBatDau)
                     {
                         return new ResponseModelError("Không thể hủy lịch trước giờ tập 2 tiếng.");
