@@ -361,6 +361,9 @@ namespace HospitalityCustomerAPI.Controllers
                 return new ResponseModelError("Gói dịch vụ không áp dụng cho bộ phận " + boPhan.Ten);
             }            
 
+            if (goiDichVu.NgayKichHoat != null && goiDichVu.NgayKichHoat.Value.Date > DateTime.Now.Date)
+                return new ResponseModelError("Gói dịch vụ chưa đến ngày kích hoạt");
+
             if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
                 return new ResponseModelError("Gói dịch vụ hết hạn");
 
