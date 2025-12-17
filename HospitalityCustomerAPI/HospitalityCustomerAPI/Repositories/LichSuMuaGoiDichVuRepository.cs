@@ -19,6 +19,8 @@ namespace HospitalityCustomerAPI.Repositories
             return _context.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefault(x => x.Ma == Ma && !(x.Deleted ?? false));
         }
 
+
+        // dùng cho check lịch sử đăng kí
         public List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang)
         {
             List<LichSuGoiDichVuDTO> goiDichVu = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
@@ -62,10 +64,13 @@ namespace HospitalityCustomerAPI.Repositories
 
         public List<LichSuGoiDichVuDTO> GetListGoiDichVuConSuDung(Guid MaKhachHang)
         {
+            var today = DateTime.Now.Date;
             List<LichSuGoiDichVuDTO> goiDichVu = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
                                                   join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
                                                   where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
                                                   && (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
+                                                  && (t.NgayKichHoat == null || t.NgayKichHoat <= today)
+                                                  && (t.NgayHetHan != null && t.NgayHetHan >= today)
                                                   select new LichSuGoiDichVuDTO
                                                   {
                                                       MaLichSuGoiDichVu = t.Ma,
@@ -75,6 +80,7 @@ namespace HospitalityCustomerAPI.Repositories
                                                       SoLan = t.SoLanSuDung ?? 0,
                                                       SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
                                                       ConLai = t.SoLanConLai ?? 0,
+                                                      MaBoPhan = t.MaPhongBan ?? Guid.Empty
                                                   }).ToList();
 
             List<LichSuGoiDichVuDTO> goiDichVuGiaDinh = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
@@ -82,6 +88,8 @@ namespace HospitalityCustomerAPI.Repositories
                                                          join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
                                                          where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
                                                          && (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
+                                                         && (gdv.NgayKichHoat == null || gdv.NgayKichHoat <= today)
+                                                         && (gdv.NgayHetHan != null && gdv.NgayHetHan >= today)
                                                          select new LichSuGoiDichVuDTO
                                                          {
                                                              MaLichSuGoiDichVu = gdv.Ma,
@@ -91,6 +99,7 @@ namespace HospitalityCustomerAPI.Repositories
                                                              SoLan = gdv.SoLanSuDung ?? 0,
                                                              SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
                                                              ConLai = gdv.SoLanConLai ?? 0,
+                                                             MaBoPhan = gdv.MaPhongBan ?? Guid.Empty
                                                          }).ToList();
 
             goiDichVu.AddRange(goiDichVuGiaDinh);
