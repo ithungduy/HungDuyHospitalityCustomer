@@ -25,6 +25,8 @@ public partial class OpsLichSuMuaGoiDichVu
 
     public Guid? NhanVienPt { get; set; }
 
+    public bool? GoiDichVuCaNhan { get; set; }
+
     public Guid? UserCreated { get; set; }
 
     public DateTime? CreatedDate { get; set; }

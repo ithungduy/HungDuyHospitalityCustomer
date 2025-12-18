@@ -184,12 +184,20 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
 
         modelBuilder.Entity<SysAppVersion>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("sys_AppVersion");
+            entity.ToTable("sys_AppVersion");
 
-            entity.Property(e => e.Appver).HasMaxLength(64);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.AndroidVer)
+                .HasMaxLength(64)
+                .HasColumnName("Android_Ver");
             entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.IosVer)
+                .HasMaxLength(64)
+                .HasColumnName("Ios_Ver");
+            entity.Property(e => e.LastUpdatedBy).HasMaxLength(128);
+            entity.Property(e => e.LastUpdatedTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<SysNotifications>(entity =>

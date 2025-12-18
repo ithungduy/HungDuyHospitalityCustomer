@@ -89,7 +89,7 @@ namespace HospitalityCustomerAPI.Controllers
                 string obj = Utility.Base64Encode(JsonConvert.SerializeObject(objToken));
                 string sign = Utility.GetSHA256(obj + PASSCODE + DateTime.Now.ToString("yyyyMM"));
                 string token = obj + "." + sign;
-                var spec = _hungDuyHospitalityCustomerContext.SysAppVersion.Select(x => x.Appver).FirstOrDefault() ?? "1:1.0.0";
+                var spec = _hungDuyHospitalityCustomerContext.SysAppVersion.Select(x => x.AndroidVer).FirstOrDefault() ?? "1:1.0.0";
 
                 var dto = new UserResponseDto
                 {
