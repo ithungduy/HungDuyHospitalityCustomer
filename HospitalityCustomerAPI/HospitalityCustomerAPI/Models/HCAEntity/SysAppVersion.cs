@@ -16,4 +16,6 @@ public partial class SysAppVersion
     public DateTime? LastUpdatedTime { get; set; }
 
     public string? LastUpdatedBy { get; set; }
+
+    public string? Appver { get; set; }
 }

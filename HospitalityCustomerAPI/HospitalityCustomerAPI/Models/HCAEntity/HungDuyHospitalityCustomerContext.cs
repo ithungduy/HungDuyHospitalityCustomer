@@ -190,6 +190,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.AndroidVer)
                 .HasMaxLength(64)
                 .HasColumnName("Android_Ver");
+            entity.Property(e => e.Appver).HasMaxLength(64);
             entity.Property(e => e.Description).HasMaxLength(2000);
             entity.Property(e => e.IosVer)
                 .HasMaxLength(64)
