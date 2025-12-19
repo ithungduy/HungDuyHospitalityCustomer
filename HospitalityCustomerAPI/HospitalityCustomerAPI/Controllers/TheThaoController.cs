@@ -206,6 +206,18 @@ namespace HospitalityCustomerAPI.Controllers
                 if (soLuongDaDangKy >= (lopHoc.SoHocVien ?? 0))
                     return new ResponseModelError("Lớp học đã đầy, vui lòng chọn giờ khác");
 
+                if (!lopHoc.NgayTapLuyen.HasValue || !lopHoc.TuGio.HasValue)
+                    return new ResponseModelError("Thiếu ngày/giờ tập luyện");
+
+                DateTime ngayGioTap = lopHoc.NgayTapLuyen.Value.Date
+                                      .Add(lopHoc.TuGio.Value.ToTimeSpan());
+
+                // Không cho đăng ký nếu hiện tại đã nằm trong vòng 10 phút trước giờ tập
+                if (now > ngayGioTap.AddMinutes(-10))
+                {
+                    return new ResponseModelError("Phải đăng ký trước 10 phút");
+                }
+
                 if (kiemTraTrung != null) return new ResponseModelError("Lịch tập đã đăng ký rồi");
 
                 // Tạo đăng ký mới
