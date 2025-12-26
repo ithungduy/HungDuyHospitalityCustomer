@@ -10,6 +10,5 @@
         public int SoLanDaSuDung { get;set;}
         public int ConLai { get;set;}
         public Guid MaBoPhan { get; set; }
-        public Guid MaDiemBanHang { get; set; }
     }
 }

@@ -13,7 +13,6 @@ namespace HospitalityCustomerAPI.Common
     /// </summary>
     public enum BoPhanTheThaoEnum
     {
-        //33411205-AE0E-48B7-A402-3EE71BFF0A89
         [EnumGuid("371F8A75-FEB2-F011-96CB-000C2924A9FE")]
         [Description("CANA-PILATES")]
         Pilates,
