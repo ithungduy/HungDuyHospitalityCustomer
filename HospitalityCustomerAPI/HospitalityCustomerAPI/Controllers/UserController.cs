@@ -780,7 +780,8 @@ namespace HospitalityCustomerAPI.Controllers
             }
 
             // 2. Lấy GUID Pilates từ Enum cứng (Extension method GetEnumGuid)
-            Guid maBoPhanPilates = BoPhanTheThaoEnum.Pilates.GetEnumGuid();
+            Guid maBoPhanPilates = 
+                BoPhanTheThaoEnum.Pilates.GetEnumGuid();
 
             // 3. Gọi Repository
             var listData = _lichSuMuaGoiDichVuRepository

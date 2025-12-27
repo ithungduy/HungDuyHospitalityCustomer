@@ -26,205 +26,186 @@ namespace HospitalityCustomerAPI.Repositories
                 .FirstOrDefault(x => x.Ma == Ma && !(x.Deleted ?? false));
         }
 
+        //// dùng cho check lịch sử đăng kí
         public List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang)
         {
-            List<LichSuGoiDichVuDTO> goiDichVu = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
-                                                  join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
-                                                  where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-                                                  //&& (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
-                                                  select new LichSuGoiDichVuDTO
-                                                  {
-                                                      MaLichSuGoiDichVu = t.Ma,
-                                                      TenGoiDichVu = dv.Ten,
-                                                      NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
-                                                      NgayHetHan = t.NgayHetHan,
-                                                      SoLan = t.SoLanSuDung ?? 0,
-                                                      SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
-                                                      ConLai = t.SoLanConLai ?? 0,
-                                                      MaBoPhan = t.MaPhongBan ?? Utility.defaultUID,
-                                                  }).ToList();
+            // BƯỚC 1: Lấy dữ liệu thô (Raw Data)
+            // Code này chạy SQL và lấy dữ liệu về RAM
+            var rawDataTemp = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
+                               join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
+                               where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
+                               select new
+                               {
+                                   MaLichSuGoiDichVu = t.Ma,
+                                   TenGoiDichVu = dv.Ten,
+                                   NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
+                                   NgayHetHan = t.NgayHetHan,
+                                   SoLan = t.SoLanSuDung ?? 0,
+                                   SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
+                                   ConLai = t.SoLanConLai ?? 0,
+                                   MaPhongBanRaw = t.MaPhongBan // Đây là Guid?
+                               }).ToList();
 
-            List<LichSuGoiDichVuDTO> goiDichVuGiaDinh = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
-                                                         join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
-                                                         join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
-                                                         where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-                                                         //&& (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
-                                                         select new LichSuGoiDichVuDTO
-                                                         {
-                                                             MaLichSuGoiDichVu = gdv.Ma,
-                                                             TenGoiDichVu = dv.Ten,
-                                                             NgayKichHoat = gdv.NgayKichHoat ?? t.CreatedDate,
-                                                             NgayHetHan = gdv.NgayHetHan,
-                                                             SoLan = gdv.SoLanSuDung ?? 0,
-                                                             SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
-                                                             ConLai = gdv.SoLanConLai ?? 0,
-                                                             MaBoPhan = gdv.MaPhongBan ?? Utility.defaultUID,
-                                                         }).ToList();
+            // Map sang DTO
+            var listGoiDichVu = rawDataTemp.Select(x => new LichSuGoiDichVuDTO
+            {
+                MaLichSuGoiDichVu = x.MaLichSuGoiDichVu,
+                TenGoiDichVu = x.TenGoiDichVu,
+                NgayKichHoat = x.NgayKichHoat,
+                NgayHetHan = x.NgayHetHan,
+                SoLan = x.SoLan,
+                SoLanDaSuDung = x.SoLanDaSuDung,
+                ConLai = x.ConLai,
 
-            goiDichVu.AddRange(goiDichVuGiaDinh);
+                // --- ĐÃ SỬA Ở ĐÂY ---
+                // Vì x.MaPhongBanRaw đã là Guid? nên dùng trực tiếp, 
+                // không cần Utility.GetGuid (hàm này chỉ dành cho string)
+                MaBoPhan = x.MaPhongBanRaw ?? Utility.defaultUID,
 
-            return goiDichVu;
+                MaDiemBanHang = Guid.Empty
+            }).ToList();
+
+
+            // BƯỚC 2: Lấy dữ liệu gói gia đình (Tương tự)
+            var rawFamilyTemp = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
+                                 join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
+                                 join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
+                                 where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
+                                 select new
+                                 {
+                                     MaLichSuGoiDichVu = gdv.Ma,
+                                     TenGoiDichVu = dv.Ten,
+                                     NgayKichHoat = gdv.NgayKichHoat ?? t.CreatedDate,
+                                     NgayHetHan = gdv.NgayHetHan,
+                                     SoLan = gdv.SoLanSuDung ?? 0,
+                                     SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
+                                     ConLai = gdv.SoLanConLai ?? 0,
+                                     MaPhongBanRaw = gdv.MaPhongBan
+                                 }).ToList();
+
+            var listGiaDinh = rawFamilyTemp.Select(x => new LichSuGoiDichVuDTO
+            {
+                MaLichSuGoiDichVu = x.MaLichSuGoiDichVu,
+                TenGoiDichVu = x.TenGoiDichVu,
+                NgayKichHoat = x.NgayKichHoat,
+                NgayHetHan = x.NgayHetHan,
+                SoLan = x.SoLan,
+                SoLanDaSuDung = x.SoLanDaSuDung,
+                ConLai = x.ConLai,
+
+                // --- ĐÃ SỬA Ở ĐÂY ---
+                MaBoPhan = x.MaPhongBanRaw ?? Utility.defaultUID,
+
+                MaDiemBanHang = Guid.Empty
+            }).ToList();
+
+            // Gộp danh sách
+            listGoiDichVu.AddRange(listGiaDinh);
+
+            // BƯỚC 3: Xử lý Mapping (Giữ nguyên)
+            if (listGoiDichVu.Any())
+            {
+                MapDiemBanHangFromPos(listGoiDichVu);
+            }
+
+            return listGoiDichVu;
         }
 
 
-        //// dùng cho check lịch sử đăng kí
-        //public List<LichSuGoiDichVuDTO> GetListGoiDichVu(Guid MaKhachHang)
-        //{
-        //    // Bước 1: Query dữ liệu thô từ HCA Context
-        //    var rawData = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
-        //                   join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
-        //                   where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-        //                   select new LichSuGoiDichVuDTO
-        //                   {
-        //                       MaLichSuGoiDichVu = t.Ma,
-        //                       TenGoiDichVu = dv.Ten,
-        //                       NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
-        //                       NgayHetHan = t.NgayHetHan,
-        //                       SoLan = t.SoLanSuDung ?? 0,
-        //                       SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
-        //                       ConLai = t.SoLanConLai ?? 0,
-        //                       MaBoPhan = t.MaPhongBan ?? Utility.defaultUID, // Tạm lấy MaPhongBan nội bộ
-        //                   }).ToList();
-
-        //    // Lấy thêm gói gia đình (giữ nguyên logic cũ của bạn)
-        //    var rawDataGiaDinh = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
-        //                          join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
-        //                          join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
-        //                          where t.MaKhachHang == MaKhachHang && !(t.Deleted ?? false)
-        //                          select new LichSuGoiDichVuDTO
-        //                          {
-        //                              MaLichSuGoiDichVu = gdv.Ma,
-        //                              TenGoiDichVu = dv.Ten,
-        //                              NgayKichHoat = gdv.NgayKichHoat ?? t.CreatedDate,
-        //                              NgayHetHan = gdv.NgayHetHan,
-        //                              SoLan = gdv.SoLanSuDung ?? 0,
-        //                              SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
-        //                              ConLai = gdv.SoLanConLai ?? 0,
-        //                              MaBoPhan = gdv.MaPhongBan ?? Utility.defaultUID,
-        //                          }).ToList();
-
-        //    rawData.AddRange(rawDataGiaDinh);
-
-        //    // Bước 2: Xử lý MAPPING khác DB (Sửa lỗi cú pháp SQL '$')
-        //    if (rawData.Any())
-        //    {
-        //        // Lấy danh sách ID phòng ban từ dữ liệu thô
-        //        var listPhongBanIds = rawData.Select(x => x.MaBoPhan).Distinct().ToList();
-
-        //        // --- ĐOẠN CODE ĐÃ SỬA ---
-
-        //        // 1. Tải toàn bộ danh mục Điểm Bán Hàng có liên kết về RAM
-        //        // (SQL query này rất đơn giản, chạy tốt trên mọi phiên bản SQL Server)
-        //        var allPosLinks = _posContext.TblDiemBanHang.AsNoTracking()
-        //            .Where(x => x.MaPhongBan != null)
-        //            .Select(x => new { x.Ma, x.MaPhongBan })
-        //            .ToList(); // <--- Execute SQL ngay tại đây
-
-        //        // 2. Thực hiện lọc danh sách trên RAM (Client-side evaluation)
-        //        // Việc so sánh listPhongBanIds.Contains lúc này do C# xử lý, không bắn câu lệnh xuống DB nữa
-        //        var mapDiemBanHang = allPosLinks
-        //            .Where(x => listPhongBanIds.Contains(x.MaPhongBan!.Value))
-        //            .ToList();
-
-        //        // 3. Cập nhật lại MaBoPhan thành MaDiemBanHang (Tráo ID)
-        //        foreach (var item in rawData)
-        //        {
-        //            var pos = mapDiemBanHang.FirstOrDefault(p => p.MaPhongBan == item.MaBoPhan);
-        //            if (pos != null)
-        //            {
-        //                item.MaBoPhan = pos.Ma;
-        //            }
-        //        }
-        //    }
-
-        //    return rawData;
-        //}
-
-
+        // Tôi cũng update hàm này luôn để dữ liệu đồng bộ (tránh việc hàm trên có MaDiemBanHang mà hàm này lại không)
         public List<LichSuGoiDichVuDTO> GetListGoiDichVuConSuDung(Guid MaKhachHang)
         {
             var today = DateTime.Now.Date;
+            var now = DateTime.Now;
 
-            // 1. Lấy danh sách gói cá nhân (Query bên DB Customer)
-            // Tạm thời gán MaBoPhan = MaPhongBan (nội bộ) để làm key mapping
-            List<LichSuGoiDichVuDTO> goiDichVu = (
-                from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
-                join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
-                where t.MaKhachHang == MaKhachHang
-                   && !(t.Deleted ?? false)
-                   && (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
-                   && (t.NgayKichHoat == null || t.NgayKichHoat <= today)
-                   && (t.NgayHetHan != null && t.NgayHetHan >= today)
-                select new LichSuGoiDichVuDTO
-                {
-                    MaLichSuGoiDichVu = t.Ma,
-                    TenGoiDichVu = dv.Ten,
-                    NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
-                    NgayHetHan = t.NgayHetHan,
-                    SoLan = t.SoLanSuDung ?? 0,
-                    SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
-                    ConLai = t.SoLanConLai ?? 0,
-                    MaBoPhan = t.MaPhongBan ?? Guid.Empty
-                }).ToList();
+            // =========================================================================
+            // 1. Lấy danh sách gói cá nhân
+            // =========================================================================
 
-            // 2. Lấy danh sách gói gia đình (Query bên DB Customer)
-            List<LichSuGoiDichVuDTO> goiDichVuGiaDinh = (
-                from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
-                join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
-                join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
-                where t.MaKhachHang == MaKhachHang
-                   && !(t.Deleted ?? false)
-                   && (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
-                   && (gdv.NgayKichHoat == null || gdv.NgayKichHoat <= today)
-                   && (gdv.NgayHetHan != null && gdv.NgayHetHan >= today)
-                select new LichSuGoiDichVuDTO
-                {
-                    MaLichSuGoiDichVu = gdv.Ma,
-                    TenGoiDichVu = dv.Ten,
-                    NgayKichHoat = gdv.NgayKichHoat ?? t.CreatedDate,
-                    NgayHetHan = gdv.NgayHetHan,
-                    SoLan = gdv.SoLanSuDung ?? 0,
-                    SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
-                    ConLai = gdv.SoLanConLai ?? 0,
-                    MaBoPhan = gdv.MaPhongBan ?? Guid.Empty
-                }).ToList();
+            // Bước 1.1: Query dữ liệu thô về RAM (tránh lỗi InvalidCast trong SQL)
+            var rawDataTemp = (from t in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
+                               join dv in _context.TblHangHoa.AsNoTracking() on t.MaHangHoa equals dv.Ma
+                               where t.MaKhachHang == MaKhachHang
+                                  && !(t.Deleted ?? false)
+                                  && (t.SoLanSuDung ?? 0) - (t.SoLanDaSuDung ?? 0) > 0
+                                  && (t.NgayKichHoat == null || t.NgayKichHoat <= now)
+                                  && (t.NgayHetHan != null && t.NgayHetHan >= today)
+                               select new
+                               {
+                                   MaLichSuGoiDichVu = t.Ma,
+                                   TenGoiDichVu = dv.Ten,
+                                   NgayKichHoat = t.NgayKichHoat ?? t.CreatedDate,
+                                   NgayHetHan = t.NgayHetHan,
+                                   SoLan = t.SoLanSuDung ?? 0,
+                                   SoLanDaSuDung = t.SoLanDaSuDung ?? 0,
+                                   ConLai = t.SoLanConLai ?? 0,
+                                   MaPhongBanRaw = t.MaPhongBan // Lấy nguyên giá trị (Guid?) về
+                               }).ToList();
 
-            // Gộp 2 list lại
+            // Bước 1.2: Map sang DTO và xử lý Null check trên RAM
+            List<LichSuGoiDichVuDTO> goiDichVu = rawDataTemp.Select(x => new LichSuGoiDichVuDTO
+            {
+                MaLichSuGoiDichVu = x.MaLichSuGoiDichVu,
+                TenGoiDichVu = x.TenGoiDichVu,
+                NgayKichHoat = x.NgayKichHoat,
+                NgayHetHan = x.NgayHetHan,
+                SoLan = x.SoLan,
+                SoLanDaSuDung = x.SoLanDaSuDung,
+                ConLai = x.ConLai,
+                // C# xử lý tốt việc này trên RAM
+                MaBoPhan = x.MaPhongBanRaw ?? Utility.defaultUID,
+                MaDiemBanHang = Guid.Empty
+            }).ToList();
+
+
+            // =========================================================================
+            // 2. Lấy danh sách gói gia đình
+            // =========================================================================
+
+            // Bước 2.1: Query dữ liệu thô
+            var rawFamilyTemp = (from t in _context.OpsGoiDichVuGiaDinh.AsNoTracking()
+                                 join gdv in _context.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals gdv.Ma
+                                 join dv in _context.TblHangHoa.AsNoTracking() on gdv.MaHangHoa equals dv.Ma
+                                 where t.MaKhachHang == MaKhachHang
+                                    && !(t.Deleted ?? false)
+                                    && (gdv.SoLanSuDung ?? 0) - (gdv.SoLanDaSuDung ?? 0) > 0
+                                    && (gdv.NgayKichHoat == null || gdv.NgayKichHoat <= today)
+                                    && (gdv.NgayHetHan != null && gdv.NgayHetHan >= today)
+                                 select new
+                                 {
+                                     MaLichSuGoiDichVu = gdv.Ma,
+                                     TenGoiDichVu = dv.Ten,
+                                     NgayKichHoat = gdv.NgayKichHoat ?? t.CreatedDate,
+                                     NgayHetHan = gdv.NgayHetHan,
+                                     SoLan = gdv.SoLanSuDung ?? 0,
+                                     SoLanDaSuDung = gdv.SoLanDaSuDung ?? 0,
+                                     ConLai = gdv.SoLanConLai ?? 0,
+                                     MaPhongBanRaw = gdv.MaPhongBan // Lấy nguyên giá trị
+                                 }).ToList();
+
+            // Bước 2.2: Map sang DTO
+            List<LichSuGoiDichVuDTO> goiDichVuGiaDinh = rawFamilyTemp.Select(x => new LichSuGoiDichVuDTO
+            {
+                MaLichSuGoiDichVu = x.MaLichSuGoiDichVu,
+                TenGoiDichVu = x.TenGoiDichVu,
+                NgayKichHoat = x.NgayKichHoat,
+                NgayHetHan = x.NgayHetHan,
+                SoLan = x.SoLan,
+                SoLanDaSuDung = x.SoLanDaSuDung,
+                ConLai = x.ConLai,
+                MaBoPhan = x.MaPhongBanRaw ?? Utility.defaultUID,
+                MaDiemBanHang = Guid.Empty
+            }).ToList();
+
+            // =========================================================================
+            // 3. Gộp và Map POS
+            // =========================================================================
+
             goiDichVu.AddRange(goiDichVuGiaDinh);
 
-            // 3. XỬ LÝ MAPPING KHÁC DATABASE (Sửa lỗi 'Incorrect syntax near $')
             if (goiDichVu.Any())
             {
-                // Lấy danh sách các Mã Phòng Ban (Internal ID) có trong kết quả
-                var listPhongBanIds = goiDichVu.Select(x => x.MaBoPhan).Distinct().ToList();
-
-                // --- CÁCH SỬA: KHÔNG DÙNG .Contains() TRONG LINQ SQL ---
-
-                // B1: Lấy tất cả các điểm bán hàng có liên kết với phòng ban về RAM.
-                // (Bảng DiemBanHang là bảng danh mục, dữ liệu ít nên query này rất nhẹ)
-                var allPosLinks = _posContext.TblDiemBanHang.AsNoTracking()
-                    .Where(x => x.MaPhongBan != null) // Chỉ lấy những dòng có map phòng ban
-                    .Select(x => new { x.Ma, x.MaPhongBan })
-                    .ToList(); // <--- Executed SQL ngay tại đây (SELECT đơn giản, không lỗi)
-
-                // B2: Thực hiện lọc (Filter) trên RAM (Client-side evaluation)
-                // Lúc này C# tự xử lý listPhongBanIds, không liên quan đến SQL Server nữa
-                var mapDiemBanHang = allPosLinks
-                    .Where(x => listPhongBanIds.Contains(x.MaPhongBan!.Value))
-                    .ToList();
-
-                // Duyệt qua list kết quả và tráo đổi ID
-                foreach (var item in goiDichVu)
-                {
-                    // Tìm xem MaPhongBan hiện tại map với Điểm Bán Hàng nào
-                    var pos = mapDiemBanHang.FirstOrDefault(p => p.MaPhongBan == item.MaBoPhan);
-
-                    if (pos != null)
-                    {
-                        // Thay thế MaPhongBan nội bộ bằng Mã Điểm Bán Hàng
-                        item.MaBoPhan = pos.Ma;
-                    }
-                }
+                MapDiemBanHangFromPos(goiDichVu);
             }
 
             return goiDichVu;
@@ -232,48 +213,98 @@ namespace HospitalityCustomerAPI.Repositories
 
         public List<LichSuGoiDichVuDTO> GetListGoiDichVuByBoPhan(Guid MaKhachHang, Guid MaBoPhan)
         {
-            // Lưu ý: MaBoPhan tham số truyền vào chính là MaDiemBanHang (Client gửi)
+            // LOGIC MỚI: MaBoPhan ở đây chính là [MaPhongBan] (Internal ID)
 
-            // 1. Tìm "MaPhongBan" (Internal ID) tương ứng trong DB POS
-            var maPhongBanInternal = _posContext.TblDiemBanHang.AsNoTracking()
-                .Where(x => x.Ma == MaBoPhan)
-                .Select(x => x.MaPhongBan)
+            // BƯỚC 1: Tìm thông tin Điểm Bán Hàng tương ứng với Bộ Phận này (Để trả về cho Client dùng)
+            // Một bộ phận có thể có nhiều điểm bán, ta lấy cái đầu tiên tìm thấy làm đại diện.
+            var posInfo = _posContext.TblDiemBanHang.AsNoTracking()
+                .Where(x => x.MaPhongBan == MaBoPhan)
+                .Select(x => x.Ma) // Chỉ cần lấy Guid Ma (POS ID)
                 .FirstOrDefault();
 
-            // Nếu không tìm thấy mapping nào -> Tức là Điểm bán hàng không tồn tại hoặc chưa cấu hình Phòng Ban
-            // -> Trả về rỗng luôn cho nhanh
-            if (maPhongBanInternal == null)
+            // Nếu không tìm thấy POS nào map với bộ phận này, gán mặc định rỗng
+            Guid posId = posInfo != null ? posInfo : Guid.Empty;
+
+            // BƯỚC 2: Query dữ liệu lịch sử (Dùng trực tiếp MaBoPhan để tìm)
+
+            // Lưu ý: Vẫn cần xử lý vụ Guid/String nếu DB Customer lưu MaPhongBan là String
+            // Nếu DB Customer lưu MaPhongBan là Guid chuẩn rồi thì bỏ đoạn convert này đi
+            // string internalIdStr = MaBoPhan.ToString(); 
+
+            // Query dữ liệu thô về RAM
+            var rawDataTemp = (from ls in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
+                               join g in _context.TblHangHoa.AsNoTracking() on ls.MaHangHoa equals g.Ma
+                               where ls.MaKhachHang == MaKhachHang
+                                  // LOGIC CHUẨN: So sánh trực tiếp với MaPhongBan trong bảng
+                                  // (Giả sử trong DB nó là Guid? như anh mô tả "uniqueidentifier Checked")
+                                  && ls.MaPhongBan == MaBoPhan
+
+                                  && !(ls.Deleted ?? false)
+                                  && ls.NgayKichHoat != null
+                                  && ((ls.SoLanSuDung ?? 0) - (ls.SoLanDaSuDung ?? 0) > 0)
+                                  && (ls.NgayHetHan == null || ls.NgayHetHan.Value.Date >= DateTime.Now.Date)
+                               orderby ls.NgayHetHan ascending
+                               select new
+                               {
+                                   MaLichSuGoiDichVu = ls.Ma,
+                                   TenGoiDichVu = g.Ten,
+                                   NgayKichHoat = ls.NgayKichHoat,
+                                   NgayHetHan = ls.NgayHetHan,
+                                   SoLan = ls.SoLanSuDung ?? 0,
+                                   SoLanDaSuDung = ls.SoLanDaSuDung ?? 0,
+                                   ConLai = ls.SoLanConLai ?? 0,
+                                   MaPhongBanRaw = ls.MaPhongBan
+                               }).ToList();
+
+            // BƯỚC 3: Map sang DTO
+            var result = rawDataTemp.Select(x => new LichSuGoiDichVuDTO
             {
-                return new List<LichSuGoiDichVuDTO>();
+                MaLichSuGoiDichVu = x.MaLichSuGoiDichVu,
+                TenGoiDichVu = x.TenGoiDichVu,
+                NgayKichHoat = x.NgayKichHoat,
+                NgayHetHan = x.NgayHetHan,
+                SoLan = x.SoLan,
+                SoLanDaSuDung = x.SoLanDaSuDung,
+                ConLai = x.ConLai,
+
+                // 1. MaBoPhan: Chính là tham số đầu vào (Internal ID)
+                MaBoPhan = MaBoPhan,
+
+                // 2. MaDiemBanHang: Lấy từ kết quả query bảng TblDiemBanHang ở Bước 1
+                MaDiemBanHang = posId
+            }).ToList();
+
+            return result;
+        }
+
+        // Hàm Private Helper để tái sử dụng logic Mapping (Clean Code)
+        private void MapDiemBanHangFromPos(List<LichSuGoiDichVuDTO> dataList)
+        {
+            // 1. Lấy danh sách ID phòng ban nội bộ cần map
+            var listPhongBanIds = dataList.Select(x => x.MaBoPhan).Distinct().ToList();
+
+            // 2. Lấy bảng map từ DB POS (Chỉ lấy Ma và MaPhongBan)
+            // Lưu ý: DB POS cũng phải chắc chắn MaPhongBan là Guid, nếu POS là String thì báo mình sửa đoạn này nhé.
+            // (Giả sử bên POS chuẩn là Guid rồi)
+            var allPosLinks = _posContext.TblDiemBanHang.AsNoTracking()
+                .Where(x => x.MaPhongBan != null)
+                .Select(x => new { x.Ma, x.MaPhongBan })
+                .ToList();
+
+            // 3. Filter trên RAM
+            var mapDiemBanHang = allPosLinks
+                .Where(x => listPhongBanIds.Contains(x.MaPhongBan!.Value))
+                .ToList();
+
+            // 4. Cập nhật MaDiemBanHang vào List kết quả
+            foreach (var item in dataList)
+            {
+                var pos = mapDiemBanHang.FirstOrDefault(p => p.MaPhongBan == item.MaBoPhan);
+                if (pos != null)
+                {
+                    item.MaDiemBanHang = pos.Ma;
+                }
             }
-
-            // 2. Query dữ liệu bên DB Customer bằng Internal ID vừa tìm được
-            var query = from ls in _context.OpsLichSuMuaGoiDichVu.AsNoTracking()
-                        join g in _context.TblHangHoa.AsNoTracking() on ls.MaHangHoa equals g.Ma
-                        where ls.MaKhachHang == MaKhachHang
-                           // So sánh với MaPhongBan nội bộ
-                           && ls.MaPhongBan == maPhongBanInternal
-                           && !(ls.Deleted ?? false)
-                           && ls.NgayKichHoat != null
-                           && ((ls.SoLanSuDung ?? 0) - (ls.SoLanDaSuDung ?? 0) > 0)
-                           && (ls.NgayHetHan == null || ls.NgayHetHan.Value.Date >= DateTime.Now.Date)
-                        orderby ls.NgayHetHan ascending
-                        select new LichSuGoiDichVuDTO
-                        {
-                            MaLichSuGoiDichVu = ls.Ma,
-                            TenGoiDichVu = g.Ten,
-                            NgayKichHoat = ls.NgayKichHoat,
-                            NgayHetHan = ls.NgayHetHan,
-                            SoLan = ls.SoLanSuDung ?? 0,
-                            SoLanDaSuDung = ls.SoLanDaSuDung ?? 0,
-                            ConLai = ls.SoLanConLai ?? 0,
-
-                            // Trả về lại đúng cái Mã mà client đã gửi xuống (MaDiemBanHang)
-                            // Không cần lấy từ DB nữa vì ta đang filter theo chính nó
-                            MaBoPhan = MaBoPhan
-                        };
-
-            return query.ToList();
         }
     }
 }
