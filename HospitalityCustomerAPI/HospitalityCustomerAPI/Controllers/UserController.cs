@@ -367,7 +367,9 @@ namespace HospitalityCustomerAPI.Controllers
             if (goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
                 return new ResponseModelError("Gói dịch vụ hết hạn");
 
-            var item = new HospitalityCustomerAPI.Models.HCAEntity.OpsCheckIn
+            Models.HCAEntity.TblHangHoa? dichVu = _context.TblHangHoa.AsNoTracking().FirstOrDefault(x => x.Ma == (goiDichVu != null ? goiDichVu.MaHangHoa : null));
+
+            var item = new Models.HCAEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
                 MaPhongBan = diemBanHang.MaPhongBan,
@@ -379,7 +381,7 @@ namespace HospitalityCustomerAPI.Controllers
                 CreatedDate = DateTime.Now,
             };
 
-            var itemPos = new HospitalityCustomerAPI.Models.POSEntity.OpsCheckIn
+            var itemPos = new Models.POSEntity.OpsCheckIn
             {
                 MaChiNhanh = diemBanHang.MaChiNhanh,
                 MaPhongBan = diemBanHang.MaPhongBan,
@@ -398,17 +400,25 @@ namespace HospitalityCustomerAPI.Controllers
             try
             {
                 _context.Add(item);
-                goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
-                goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
-                _context.Update(goiDichVu);
+                if((dichVu != null && dichVu.MaLopHang != LopHangHoa.PILATES.GetEnumGuid()) || dichVu == null)
+                {
+                    goiDichVu.SoLanDaSuDung = (goiDichVu.SoLanDaSuDung ?? 0) + 1;
+                    goiDichVu.SoLanConLai = (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0);
+                    _context.Update(goiDichVu);
+                }
+              
                 await _context.SaveChangesAsync();
                 await tran1.CommitAsync();
 
                 _posdbcontext.Add(itemPos);
-                lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
-                lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanDaSuDung ?? 0);
-                _posdbcontext.Update(lichSuGoiDV);
-                await _posdbcontext.SaveChangesAsync();
+                if ((dichVu != null && dichVu.MaLopHang != LopHangHoa.PILATES.GetEnumGuid()) || dichVu == null)
+                {
+
+                    lichSuGoiDV.SoLanDaSuDung = (lichSuGoiDV.SoLanDaSuDung ?? 0) + 1;
+                    lichSuGoiDV.SoLanConLai = (lichSuGoiDV.SoLanSuDung ?? 0) - (lichSuGoiDV.SoLanDaSuDung ?? 0);
+                    _posdbcontext.Update(lichSuGoiDV);
+                    await _posdbcontext.SaveChangesAsync();
+                }
                 await tran2.CommitAsync();
 
                 //// ===== FIRE-AND-FORGET mở cửa sau khi checkin thành công =====

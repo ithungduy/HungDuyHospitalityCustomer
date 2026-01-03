@@ -3,6 +3,11 @@ using System.ComponentModel;
 
 namespace HospitalityCustomerAPI.Common
 {
+    public enum LopHangHoa
+    {
+        [EnumGuid("DD201355-51D9-F011-8601-000C29665C4C")]
+        PILATES,
+    }
     public enum NhomBoPhan
     {
         TheThao = 1,  
