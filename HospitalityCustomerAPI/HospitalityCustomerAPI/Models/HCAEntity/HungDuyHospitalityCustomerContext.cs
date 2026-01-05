@@ -148,6 +148,7 @@ public partial class HungDuyHospitalityCustomerContext : DbContext
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.GhiChu).HasMaxLength(50);
             entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+            entity.Property(e => e.NgayTapLuyen).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<SchLichTapLuyen>(entity =>

@@ -44,4 +44,6 @@ public partial class OpsCheckIn
     public DateTime? DeletedDate { get; set; }
 
     public Guid? MaCheckInPos { get; set; }
+
+    public bool? KhongDenTap { get; set; }
 }

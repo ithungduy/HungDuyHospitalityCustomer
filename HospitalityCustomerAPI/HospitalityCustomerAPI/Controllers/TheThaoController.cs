@@ -64,11 +64,12 @@ namespace HospitalityCustomerAPI.Controllers
 
             var ngayDangKyTrongThang = await (from t in _customerContext.SchDangKyTap.AsNoTracking()
                                                        .Where(t => t.MaKhachHang == maKhachHang && !(t.Deleted ?? false))
-                                              join l in _customerContext.SchLichTapLuyen.AsNoTracking() on t.MaLichTapLuyen equals l.Ma
+                                              join _l in _customerContext.SchLichTapLuyen.AsNoTracking() on t.MaLichTapLuyen equals _l.Ma into _l
+                                              from l in _l.DefaultIfEmpty()
                                               where !(l.Deleted ?? false)
                                               select new
                                               {
-                                                  l.NgayTapLuyen
+                                                  NgayTapLuyen = l != null ? l.NgayTapLuyen : t.NgayTapLuyen,
                                               }).Distinct().ToListAsync();
 
             var setNgayTap = new HashSet<DateTime>(ngayTapTrongThang);

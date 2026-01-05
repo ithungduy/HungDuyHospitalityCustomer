@@ -28,4 +28,16 @@ public partial class SchDangKyTap
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public Guid? MaDangKyTapChung { get; set; }
+
+    public DateTime? NgayTapLuyen { get; set; }
+
+    public TimeOnly? TuGio { get; set; }
+
+    public TimeOnly? DenGio { get; set; }
+
+    public Guid? MaHuanLuyenVien { get; set; }
+
+    public Guid? MaPhongTap { get; set; }
 }
