@@ -31,7 +31,11 @@ public partial class OpsLichSuMuaGoiDichVu
 
     public DateTime? NgayHetHan { get; set; }
 
+    public bool? GoiDichVuCaNhan { get; set; }
+
     public Guid? NhanVienPt { get; set; }
+
+    public Guid? MaPhuCap { get; set; }
 
     public Guid? UserCreated { get; set; }
 

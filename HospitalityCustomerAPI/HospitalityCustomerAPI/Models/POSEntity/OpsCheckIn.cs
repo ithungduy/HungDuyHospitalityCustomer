@@ -48,4 +48,6 @@ public partial class OpsCheckIn
     public Guid? MaChiNhanhNhanVien { get; set; }
 
     public Guid? MaBoPhanNhanVien { get; set; }
+
+    public bool? KhongDenTap { get; set; }
 }

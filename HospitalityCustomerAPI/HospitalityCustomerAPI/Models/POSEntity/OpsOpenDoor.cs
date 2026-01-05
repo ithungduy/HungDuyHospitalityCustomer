@@ -11,5 +11,7 @@ public partial class OpsOpenDoor
 
     public Guid? MaKhachHang { get; set; }
 
+    public Guid? MaGoiDichVu { get; set; }
+
     public DateTime? CreatedDate { get; set; }
 }

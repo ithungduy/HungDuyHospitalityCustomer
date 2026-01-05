@@ -504,7 +504,7 @@ namespace HospitalityCustomerAPI.Controllers
                 ///Chiến sửa lại đoạn kiểm tra gói dịch vụ
                 // 1. Tìm xem có BẤT KỲ gói cá nhân nào HỢP LỆ để mở cửa không             
                 var hasValidPackage = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking()
-                    .AnyAsync(x => x.MaKhachHang == user.MaKhachHang
+                    .FirstOrDefaultAsync(x => x.MaKhachHang == user.MaKhachHang
                                 && x.MaPhongBan == diemBanHang.MaPhongBan
                                 && !(x.Deleted ?? false)
                                 && (x.DaKichHoat ?? false) == true                                      // Đã kích hoạt
@@ -513,7 +513,7 @@ namespace HospitalityCustomerAPI.Controllers
                     );
 
 
-                if (!hasValidPackage)
+                if (hasValidPackage == null)
                 {
                     hasValidPackage = await (from t in _posdbcontext.OpsGoiDichVuGiaDinh.AsNoTracking()
                                              join g in _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals g.Ma
@@ -524,52 +524,15 @@ namespace HospitalityCustomerAPI.Controllers
                                                 && (g.DaKichHoat ?? false) == true
                                                 && ((g.SoLanSuDung ?? 0) - (g.SoLanDaSuDung ?? 0) > 0)
                                                 && (g.NgayHetHan == null || g.NgayHetHan.Value.Date >= DateTime.Today)
-                                             select g.Ma).AnyAsync();
+                                             select g).FirstOrDefaultAsync();
                 }
 
-                if (!hasValidPackage)
+                if (hasValidPackage == null)
                 {
                     return new ResponseModelError("Không tìm thấy gói dịch vụ khả dụng (Vui lòng kiểm tra: Hết hạn / Chưa kích hoạt / Hết lượt).");
                 }
 
-                ///==================================================
-
-
-                //// tìm gói dv của khách hàng trong bộ phận này
-                //var goiDichVu = await _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking().FirstOrDefaultAsync(x => x.MaKhachHang == user.MaKhachHang && x.MaPhongBan == diemBanHang.MaPhongBan && !(x.Deleted ?? false));
-                //var goiGiaDinhs = await (from t in _posdbcontext.OpsGoiDichVuGiaDinh.AsNoTracking().Where(x => x.MaKhachHang == user.MaKhachHang && !(x.Deleted ?? false))
-                //                         join g in _posdbcontext.OpsLichSuMuaGoiDichVu.AsNoTracking() on t.MaLichSuGoiDichVu equals g.Ma
-                //                         where g.MaPhongBan == diemBanHang.MaPhongBan && !(g.Deleted ?? false)
-                //                         select g).ToListAsync();
-
-                //if (goiDichVu == null && goiGiaDinhs == null)
-                //{
-                //    return new ResponseModelError("Khách hàng chưa mua gói dịch vụ " + boPhan.Ten);
-                //}
-
-                //if (goiDichVu != null && !(goiDichVu.DaKichHoat ?? false))
-                //{
-                //    return new ResponseModelError("Khách hàng có gói dịch vụ nhưng chưa kích hoạt");
-                //}
-
-                //if (goiDichVu != null && (goiDichVu.SoLanSuDung ?? 0) - (goiDichVu.SoLanDaSuDung ?? 0) <= 0)
-                //{
-                //    return new ResponseModelError("Khách hàng có gói dịch vụ đã hết số lần sử dụng");
-                //}
-
-                //if (goiDichVu != null && goiDichVu.NgayHetHan != null && goiDichVu.NgayHetHan.Value.Date < DateTime.Now.Date)
-                //    return new ResponseModelError("Gói dịch vụ hết hạn");
-
-                //bool hasUsableFamilyPackage = goiGiaDinhs.Any(x =>
-                //                                (x.DaKichHoat ?? false) &&
-                //                                ((x.SoLanSuDung ?? 0) - (x.SoLanDaSuDung ?? 0) > 0) &&
-                //                                (!x.NgayHetHan.HasValue || x.NgayHetHan.Value.Date >= DateTime.Today) // chưa hết hạn
-                //                            );
-
-                //if (goiDichVu == null && goiGiaDinhs.Any() && !hasUsableFamilyPackage)
-                //{
-                //    return new ResponseModelError("Khách hàng có gói dịch vụ gia đình đã hết hạn/ hết số lần sử dụng/ chưa kích hoạt");
-                //}
+                ///================================================== 
 
                 var baseUrl = string.IsNullOrWhiteSpace(diemBanHang.IpOpenDoor)
                           ? "http://172.16.10.169" // fallback cuối (nếu muốn)
@@ -594,7 +557,8 @@ namespace HospitalityCustomerAPI.Controllers
                         var item = new  OpsOpenDoor
                         {         
                             MaDiemBanHang = diemBanHang.Ma,                           
-                            MaKhachHang = user.MaKhachHang,                          
+                            MaKhachHang = user.MaKhachHang,     
+                            MaGoiDichVu = hasValidPackage.Ma,
                             CreatedDate = DateTime.Now,
                         };
                         _posdbcontext.Add(item);

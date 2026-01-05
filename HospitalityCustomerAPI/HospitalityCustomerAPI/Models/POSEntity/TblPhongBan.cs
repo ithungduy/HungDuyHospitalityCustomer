@@ -40,4 +40,6 @@ public partial class TblPhongBan
     public int? MaNganhVoucher { get; set; }
 
     public int? MaNhomBoPhan { get; set; }
+
+    public bool? PhatHanhHoaDonTuDong { get; set; }
 }

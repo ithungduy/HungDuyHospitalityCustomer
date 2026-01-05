@@ -181,6 +181,7 @@ public partial class HungDuyHospitalityContext : DbContext
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeletedDate).HasColumnType("datetime");
             entity.Property(e => e.DiaChi).HasMaxLength(200);
+            entity.Property(e => e.DiaChiDayDu).HasMaxLength(500);
             entity.Property(e => e.DongYtuanThuNoiQuy).HasColumnName("DongYTuanThuNoiQuy");
             entity.Property(e => e.HanMucCongNo).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.IsCompany).HasColumnName("isCompany");
@@ -189,11 +190,16 @@ public partial class HungDuyHospitalityContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("MSNV");
+            entity.Property(e => e.Mst)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("MST");
             entity.Property(e => e.NgaySinh).HasColumnType("datetime");
             entity.Property(e => e.SoDienThoai)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.Ten).HasMaxLength(50);
+            entity.Property(e => e.Ten).HasMaxLength(500);
+            entity.Property(e => e.TenNguoiMua).HasMaxLength(200);
             entity.Property(e => e.TienSuBenhLy).HasMaxLength(1000);
         });
 

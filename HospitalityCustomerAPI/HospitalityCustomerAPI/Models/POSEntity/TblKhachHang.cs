@@ -60,4 +60,12 @@ public partial class TblKhachHang
     public Guid? UserDeleted { get; set; }
 
     public DateTime? DeletedDate { get; set; }
+
+    public bool? KhongLayHoaDon { get; set; }
+
+    public string? DiaChiDayDu { get; set; }
+
+    public string? Mst { get; set; }
+
+    public string? TenNguoiMua { get; set; }
 }
